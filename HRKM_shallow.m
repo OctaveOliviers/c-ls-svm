@@ -12,7 +12,7 @@ patterns = randn(dim_patterns, num_patterns) ;
 
 % build model to memorize patterns
 eta    = 1e3 ; % importance of error
-gamma  = 1e3 ; % importance of regularization
+gamma  = 1e1 ; % importance of regularization
 [W, b] = build_model_shallow(patterns, 'dual', 'tanh', 0, eta, gamma) ;
 
 x = -3:0.1:3 ;
