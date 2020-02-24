@@ -1,5 +1,5 @@
 %% deep dynamical system for memorizing patterns 
-% Octave Oliviers - 22nd February 2020
+% Octave Oliviers - 23nd February 2020
 
 
 % DECLARE PARAMETERS
@@ -14,6 +14,7 @@ gam = 1e3 ;	% regularization parameter
 
 % BUILD DATASET
 X = randn(N, P)
+
 
 % TRAIN NETWORK
 
