@@ -3,7 +3,7 @@
 %       type        : string that identifies the chosen kernel function
 %       param       : kernel parameter
 
-function [matrix, phi] = kernel_matrix(patterns, type, param)
+function matrix = kernel_matrix(patterns, type, param)
 
     num_patterns = size(patterns, 2);
     matrix = zeros( num_patterns, num_patterns );
@@ -31,7 +31,7 @@ function [matrix, phi] = kernel_matrix(patterns, type, param)
         case 'linear'
             matrix = patterns' * patterns;
         
-        case 'rbf'
+        case { 'rbf', 'gauss', 'gaus' }
             sig = param;
             for j = 1:num_patterns
                 matrix(j, j) = 1;
@@ -41,7 +41,7 @@ function [matrix, phi] = kernel_matrix(patterns, type, param)
                     matrix(i, j) = k;
                     matrix(j, i) = k;
                 end
-            end 
+            end
             
         case 'tanh'
             phi = tanh(patterns) ;
