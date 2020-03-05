@@ -1,7 +1,7 @@
 % @Author: OctaveOliviers
 % @Date:   2020-03-05 09:54:32
 % @Last Modified by:   OctaveOliviers
-% @Last Modified time: 2020-03-05 10:29:56
+% @Last Modified time: 2020-03-05 14:33:02
 
 classdef Memory_Model
 
@@ -34,16 +34,23 @@ classdef Memory_Model
 		end
 
 		% simulate model
-		function x_new = simulate(obj, x)
+		function path = simulate(obj, x)
 			% x		matrix with start positions to simulate from as columns
+
+			% variable to store evolution of state
+			path = zeros( [size(x), 2]) ;
+			path(:, :, 1) = x ;
 
 			% initialize variables
 			x_old = x ;
 			x_new = simulate_one_step(obj, x_old) ;
+			path(:, :, 2) = x_new ;
+
 			% update state untill it has converged
-			while (norm(x_old-x_new) <= 1e-10)
+			while (norm(x_old-x_new) >= 1e-5)
 				x_old = x_new ;
 				x_new = simulate_one_step(obj, x_old) ;
+				path(:, :, end+1) = x_new ;
 			end
 		end
 	end

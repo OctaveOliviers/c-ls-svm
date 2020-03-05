@@ -1,13 +1,13 @@
 % @Author: OctaveOliviers
 % @Date:   2020-03-04 22:56:29
 % @Last Modified by:   OctaveOliviers
-% @Last Modified time: 2020-03-05 10:07:16
+% @Last Modified time: 2020-03-05 15:26:15
 
 % compute kernel matrix 
 %       m = phi(x)^T * phi(y) 
 % for data in X and Y
 
-function m = ftf(X, Y, fun, param) 
+function m = phiTphi(X, Y, fun, param) 
     % X, Y      data matrix with observations in columns
     % fun 		feature map
     % param 	parameter of feature map

@@ -1,13 +1,13 @@
 % @Author: OctaveOliviers
 % @Date:   2020-03-04 22:58:16
 % @Last Modified by:   OctaveOliviers
-% @Last Modified time: 2020-03-05 10:10:32
+% @Last Modified time: 2020-03-05 15:26:37
 
 % compute product of jacobians 
 %       m = J_phi(x)^T * J_phi(y) 
 % for data in X and Y
 
-function m = FtF(X, Y, fun, param) 
+function m = jacTjac(X, Y, fun, param) 
     % X, Y      data matrix with observations in columns
     % fun 		feature map
     % param 	parameter of feature map
