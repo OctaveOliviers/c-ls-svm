@@ -1,5 +1,8 @@
-% Octave Oliviers - March 4th 2020
-%
+% @Author: OctaveOliviers
+% @Date:   2020-03-04 22:56:50
+% @Last Modified by:   OctaveOliviers
+% @Last Modified time: 2020-03-05 10:10:08
+
 % compute product of jacobian with feature map 
 %       m = J_phi(x)^T * phi(y) 
 % for data in X and Y
