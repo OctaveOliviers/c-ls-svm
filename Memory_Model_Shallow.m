@@ -1,7 +1,7 @@
 % @Author: OctaveOliviers
 % @Date:   2020-03-05 09:51:23
 % @Last Modified by:   OctaveOliviers
-% @Last Modified time: 2020-03-06 09:03:42
+% @Last Modified time: 2020-03-06 10:41:17
 
 classdef Memory_Model_Shallow < Memory_Model
 	
@@ -94,6 +94,71 @@ classdef Memory_Model_Shallow < Memory_Model
 					obj.b 	= v(end, :)' ;
 		    end
 		    disp("model trained")
+		end
+
+
+		% visualize dynamical model
+		function visualize(obj, varargin)
+
+		    % can only visualize 1D and 2D data
+		    assert( size(obj.patterns, 1)<3 , 'Cannot visualize more than 2 dimensions.' ) ;
+
+		    % extract useful information
+		    dim_data = size(obj.patterns, 1) ;
+		    num_data = size(obj.patterns, 2) ;
+
+		    % if data is one dimensional, visualize update function
+		    if (dim_data==1)
+		        
+		        figure('position', [300, 500, 600, 600])
+		        
+		        x = 1.5*min(obj.patterns, [], 'all') : ...
+			    	(max(obj.patterns, [], 'all')-min(obj.patterns, [], 'all'))/10/num_data : ...
+			  		1.5*max(obj.patterns, [], 'all') ;
+
+	            box on
+	            hold on
+
+	            % identity map
+	            plot(x, x, 'color', [0 0 0])
+
+		        % update function f(x_k)
+	            f = obj.simulate_one_step(x) ;
+	            plot(x, f, 'color', [0 0 1], 'linewidth', 1)
+
+	            % simulate model from initial conditions in varargin
+				if (nargin>1)
+					x_k = varargin{1} ; 
+					p 	= obj.simulate( x_k ) ;
+					
+					P = zeros([size(p, 1), size(p, 2), 2*size(p, 3)]) ;
+					P(:, :, 1:2:end) = p ;
+					P(:, :, 2:2:end) = p ;
+
+					for i = 1:size(P, 2)
+						plot(squeeze(P(1, i, 1:end-1)), squeeze(P(1, i, 2:end)), 'color', [0 0 0], 'linewidth', 1)
+					end
+					plot(p(:, :, 1), p(:, :, 1), 'kx')
+				end
+
+				% patterns to memorize
+				plot(obj.patterns, obj.patterns, 'rx')
+
+	            hold off
+	            xlabel('x_k')
+	            ylabel('x_{k+1}')
+	            % axes through origin
+	            ax = gca;
+				ax.XAxisLocation = 'origin';
+				ax.YAxisLocation = 'origin';
+		        title( join([ 'p_err = ', num2str(obj.p_err), ...
+		        			', p_reg = ', num2str(obj.p_reg), ...
+		        			', p_drv = ', num2str(obj.p_drv) ]))
+		    
+		    % if data is 2 dimensional, visualize vector field with nullclines
+			elseif (dim_data==2)
+		    
+		    end
 		end
 
 
