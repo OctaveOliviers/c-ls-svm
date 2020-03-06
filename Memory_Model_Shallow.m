@@ -1,7 +1,7 @@
 % @Author: OctaveOliviers
 % @Date:   2020-03-05 09:51:23
 % @Last Modified by:   OctaveOliviers
-% @Last Modified time: 2020-03-06 10:41:17
+% @Last Modified time: 2020-03-06 22:14:43
 
 classdef Memory_Model_Shallow < Memory_Model
 	
@@ -110,7 +110,7 @@ classdef Memory_Model_Shallow < Memory_Model
 		    % if data is one dimensional, visualize update function
 		    if (dim_data==1)
 		        
-		        figure('position', [300, 500, 600, 600])
+		        figure('position', [300, 500, 600, 500])
 		        
 		        x = 1.5*min(obj.patterns, [], 'all') : ...
 			    	(max(obj.patterns, [], 'all')-min(obj.patterns, [], 'all'))/10/num_data : ...
@@ -148,6 +148,7 @@ classdef Memory_Model_Shallow < Memory_Model
 	            xlabel('x_k')
 	            ylabel('x_{k+1}')
 	            % axes through origin
+	            axis equal
 	            ax = gca;
 				ax.XAxisLocation = 'origin';
 				ax.YAxisLocation = 'origin';
@@ -158,6 +159,51 @@ classdef Memory_Model_Shallow < Memory_Model
 		    % if data is 2 dimensional, visualize vector field with nullclines
 			elseif (dim_data==2)
 		    
+				figure('position', [300, 500, 600, 500])
+
+				box on
+	            hold on
+
+	            % nullclines
+				wdw = 8 ; % window
+				prec = wdw/20 ;
+				x = -wdw:prec:wdw ;
+				y = -wdw:prec:wdw ;
+				[X, Y] = meshgrid(x, y) ;
+				%
+				F = obj.simulate_one_step( [ X(:)' ; Y(:)' ] ) ; % maybe this is just simulate_one_step
+				f1 = reshape(F(1, :), [length(x), length(y)]) ;
+				f2 = reshape(F(2, :), [length(x), length(y)]) ;
+				%
+				c1 = contour(x,y,X-f1,[0, 0], 'linewidth', 1, 'color', [0.5, 0.5, 0.5], 'linestyle', '--') ;
+				c2 = contour(x,y,Y-f2,[0, 0], 'linewidth', 1, 'color', [0.5, 0.5, 0.5]) ;
+
+	            % simulate model from initial conditions in varargin
+				if (nargin>1)
+					x_k = varargin{1} ; 
+					p 	= obj.simulate( x_k ) ;
+					
+					for i = 1:size(p, 2)
+						plot(squeeze(p(1, i, :)), squeeze(p(2, i, :)), 'color', [0 0 0], 'linewidth', 1)
+					end
+					plot(p(1, :, 1), p(2, :, 1), 'ko')
+				end
+
+				% patterns to memorize
+				plot(obj.patterns(1, :), obj.patterns(2, :), 'rx')
+
+	            hold off
+	            xlabel('x_1')
+	            ylabel('x_2')
+	            % axes through origin
+	            % axis equal
+		        title( join([ 'p_err = ', num2str(obj.p_err), ...
+		        			', p_reg = ', num2str(obj.p_reg), ...
+		        			', p_drv = ', num2str(obj.p_drv) ]))
+
+		        legend('x_1 nullcline', 'x_2 nullcline') ;
+
+
 		    end
 		end
 

@@ -1,7 +1,7 @@
 % @Author: OctaveOliviers
 % @Date:   2020-03-04 22:58:16
 % @Last Modified by:   OctaveOliviers
-% @Last Modified time: 2020-03-05 15:26:37
+% @Last Modified time: 2020-03-06 21:05:19
 
 % compute product of jacobians 
 %       m = J_phi(x)^T * J_phi(y) 
@@ -31,7 +31,7 @@ function m = jacTjac(X, Y, fun, param)
                     x = X(:, i) ;
                     y = Y(:, j) ;
                     m(1+(i-1)*dim_x:i*dim_x, 1+(j-1)*dim_y:j*dim_y) = ...
-                        exp(-(x-y)'*(x-y)/(2*sig^2)) * ( eye(length(x))/sig^2 + (y-x)*(x-y)/ sig^4 ) ;
+                        exp(-(x-y)'*(x-y)/(2*sig^2)) * ( eye(length(x))/sig^2 + (y-x)*(x-y)'/sig^4 ) ;
                 end
             end
     end

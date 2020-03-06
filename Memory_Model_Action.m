@@ -1,7 +1,7 @@
 % @Author: OctaveOliviers
 % @Date:   2020-03-05 10:01:57
 % @Last Modified by:   OctaveOliviers
-% @Last Modified time: 2020-03-06 10:42:16
+% @Last Modified time: 2020-03-06 21:00:52
 
 classdef Memory_Model_Action < Memory_Model
 	
@@ -87,6 +87,7 @@ classdef Memory_Model_Action < Memory_Model
 		        figure('position', [300, 500, 300*obj.num_lay, 300])
 			    for l = 1:obj.num_lay
 
+
 			    	x = 1.5*min(obj.patterns(:, :, l:l+1), [], 'all') : ...
 			    		(max(obj.patterns(:, :, l:l+1), [], 'all')-min(obj.patterns(:, :, l:l+1), [], 'all'))/10/num_data : ...
 			  			1.5*max(obj.patterns(:, :, l:l+1), [], 'all') ;
@@ -112,7 +113,7 @@ classdef Memory_Model_Action < Memory_Model
 			                        [x_k(:, i), x_kp1(1, i)], ...
 			                        'color', [0 0 0], 'linewidth', 1 )
 			            end
-       		            plot(x_k(:, :), x_k(:, :), 'kx')
+ 	 		            plot(x_k(:, :), x_k(:, :), 'kx')
 					end
 
 		            % plot mouvement to memorize
