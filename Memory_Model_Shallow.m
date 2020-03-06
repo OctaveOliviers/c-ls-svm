@@ -1,7 +1,7 @@
 % @Author: OctaveOliviers
 % @Date:   2020-03-05 09:51:23
 % @Last Modified by:   OctaveOliviers
-% @Last Modified time: 2020-03-05 15:47:44
+% @Last Modified time: 2020-03-06 09:03:42
 
 classdef Memory_Model_Shallow < Memory_Model
 	
@@ -12,14 +12,10 @@ classdef Memory_Model_Shallow < Memory_Model
 	methods
 		% constructor
 		function obj = Memory_Model_Shallow(space, phi, theta, p_err, p_drv, p_reg)
-			% architecture
-			obj.space 	= space ;
-			obj.phi 	= phi ;
-			obj.theta 	= theta ;
-			% hyper-parameters
-			obj.p_err 	= p_err ;
-			obj.p_drv 	= p_drv ;
-			obj.p_reg 	= p_reg ;
+			% superclass constructor
+			obj 		= obj@Memory_Model(space, phi, theta, p_err, p_drv, p_reg) ;
+			% subclass specific variables
+			obj.num_lay	= 1 ;
 		end
 
 

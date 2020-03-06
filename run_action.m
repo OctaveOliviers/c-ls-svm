@@ -1,14 +1,14 @@
 % @Author: OctaveOliviers
 % @Date:   2020-03-05 09:55:31
 % @Last Modified by:   OctaveOliviers
-% @Last Modified time: 2020-03-05 15:46:59
+% @Last Modified time: 2020-03-06 09:17:37
 
 clear all
 clc
 
 dim_movements = 1 ;
 num_movements = 2 ;
-len_movements = 4 ;
+len_movements = 5 ;
 
 % create patterns to memorize
 movements = 2*randn(dim_movements, num_movements, len_movements) ;
@@ -16,7 +16,7 @@ movements = 2*randn(dim_movements, num_movements, len_movements) ;
 % model architecture
 formulation = 'dual' ;
 feature_map = 'gauss' ;
-parameter   = 1 ;
+parameter   = 0.5 ;
 num_layers	= len_movements-1 ;
 
 % build model to memorize patterns
@@ -37,7 +37,7 @@ x = -window:0.1:window ;
 % path of each data point as well as dynamical system of each layer
 [p, f] = model.simulate(movements(:, 1, 1), x) ;
 
-figure('position', [300, 500, 600, 500])
+figure('position', [300, 500, 300*num_layers, 300])
 for l = 1:num_layers
 	subplot(1, num_layers, l)
 	box	on
@@ -52,7 +52,7 @@ for l = 1:num_layers
 				[squeeze(p(1, i, l)), squeeze(p(1, i, l+1))], ...
 				'color', [0 0 0], 'linewidth', 1 )
 	end
-	% plot(p(:, :, l), p(:, :, l), 'kx')
+	plot(p(:, :, l), p(:, :, l), 'kx')
 	plot(movements(:, :, l), movements(:, :, l+1), 'rx')
 	hold off
 	xlabel('x_k')
