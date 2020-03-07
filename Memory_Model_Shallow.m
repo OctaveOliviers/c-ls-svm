@@ -1,7 +1,7 @@
 % @Author: OctaveOliviers
 % @Date:   2020-03-05 09:51:23
 % @Last Modified by:   OctaveOliviers
-% @Last Modified time: 2020-03-06 22:14:43
+% @Last Modified time: 2020-03-07 18:11:43
 
 classdef Memory_Model_Shallow < Memory_Model
 	
@@ -164,21 +164,27 @@ classdef Memory_Model_Shallow < Memory_Model
 				box on
 	            hold on
 
-	            % nullclines
+	            % patterns to memorize
+				plot(obj.patterns(1, :), obj.patterns(2, :), 'rx', 'linewidth', 2)
+
+				% energy surface and nullclines
 				wdw = 8 ; % window
 				prec = wdw/20 ;
 				x = -wdw:prec:wdw ;
 				y = -wdw:prec:wdw ;
-				[X, Y] = meshgrid(x, y) ;
+				[X, Y] = meshgrid(x, y) ;			
 				%
-				F = obj.simulate_one_step( [ X(:)' ; Y(:)' ] ) ; % maybe this is just simulate_one_step
+				F = obj.simulate_one_step( [ X(:)' ; Y(:)' ] ) ;
 				f1 = reshape(F(1, :), [length(x), length(y)]) ;
 				f2 = reshape(F(2, :), [length(x), length(y)]) ;
+				e  = vecnorm( [ X(:)'-F(1, :) ; Y(:)'-F(2, :) ] ) ;
+				E = reshape(e, [length(x), length(y)]) ;
 				%
-				c1 = contour(x,y,X-f1,[0, 0], 'linewidth', 1, 'color', [0.5, 0.5, 0.5], 'linestyle', '--') ;
-				c2 = contour(x,y,Y-f2,[0, 0], 'linewidth', 1, 'color', [0.5, 0.5, 0.5]) ;
+				contour(x, y, X-f1,[0, 0], 'linewidth', 1, 'color', [0.5, 0.5, 0.5], 'linestyle', '--') ;
+				contour(x, y, Y-f2,[0, 0], 'linewidth', 1, 'color', [0.5, 0.5, 0.5], 'linestyle', ':') ;
+				contour(x, y, E) ;
 
-	            % simulate model from initial conditions in varargin
+				% simulate model from initial conditions in varargin
 				if (nargin>1)
 					x_k = varargin{1} ; 
 					p 	= obj.simulate( x_k ) ;
@@ -190,18 +196,18 @@ classdef Memory_Model_Shallow < Memory_Model
 				end
 
 				% patterns to memorize
-				plot(obj.patterns(1, :), obj.patterns(2, :), 'rx')
+				plot(obj.patterns(1, :), obj.patterns(2, :), 'rx', 'linewidth', 2)
 
-	            hold off
-	            xlabel('x_1')
-	            ylabel('x_2')
-	            % axes through origin
-	            % axis equal
-		        title( join([ 'p_err = ', num2str(obj.p_err), ...
-		        			', p_reg = ', num2str(obj.p_reg), ...
-		        			', p_drv = ', num2str(obj.p_drv) ]))
+				hold off
+				xlabel('x_1')
+				ylabel('x_2')
+				% axes through origin
+				% axis equal
+				title( join([ 'p_err = ', num2str(obj.p_err), ...
+							', p_reg = ', num2str(obj.p_reg), ...
+							', p_drv = ', num2str(obj.p_drv) ]))
 
-		        legend('x_1 nullcline', 'x_2 nullcline') ;
+				legend('pattern', 'x_1 nullcline', 'x_2 nullcline') ;
 
 
 		    end

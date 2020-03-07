@@ -1,7 +1,7 @@
 % @Author: OctaveOliviers
 % @Date:   2020-03-05 10:01:18
 % @Last Modified by:   OctaveOliviers
-% @Last Modified time: 2020-03-06 22:15:41
+% @Last Modified time: 2020-03-07 18:13:07
 
 clear all
 clc
@@ -12,16 +12,18 @@ dim_patterns = 2 ;
 num_patterns = 4 ;
 
 % create patterns to memorize
-patterns = [0.5*randn(dim_patterns, num_patterns)+[-4;  4], ...
-			0.5*randn(dim_patterns, num_patterns)+[-4; -4], ...
-			0.5*randn(dim_patterns, num_patterns)+[ 4;  4], ...
-			0.5*randn(dim_patterns, num_patterns)+[ 4; -4] ] ;
-% patterns = 2*randn(dim_patterns, num_patterns) ;
+% patterns = [0.5*randn(dim_patterns, num_patterns)+[-2.5; -5], ...
+% 			0.5*randn(dim_patterns, num_patterns)+[2.5; -5], ...
+% 			0.5*randn(dim_patterns, num_patterns)+[-5;  2.5], ...
+% 			0.5*randn(dim_patterns, num_patterns)+[ 5; 2.5], ...
+% 			0.5*randn(dim_patterns, num_patterns)+[ 0; 5] ] ;
+[X, Y] = meshgrid(-6:3:6, -6:3:6) ;
+patterns = [X(:)' ; Y(:)'] ;
 
 % model architecture
 formulation = 'dual' ;
 feature_map = 'gauss' ;
-parameter   = 10 ;
+parameter   = 2 ;
 num_layers	= 1 ;
 
 % build model to memorize patterns
@@ -34,4 +36,4 @@ model = Memory_Model_Shallow(formulation, feature_map, parameter, p_err, p_drv, 
 
 model = model.train(patterns) ;
 
-model.visualize( 2*randn(dim_patterns, 10) ) ;
+model.visualize( 2*randn(dim_patterns, 20) ) ;
