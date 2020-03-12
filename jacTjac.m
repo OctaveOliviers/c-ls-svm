@@ -1,7 +1,7 @@
 % @Author: OctaveOliviers
 % @Date:   2020-03-04 22:58:16
 % @Last Modified by:   OctaveOliviers
-% @Last Modified time: 2020-03-06 21:05:19
+% @Last Modified time: 2020-03-08 16:30:24
 
 % compute product of jacobians 
 %       m = J_phi(x)^T * J_phi(y) 
@@ -24,7 +24,8 @@ function m = jacTjac(X, Y, fun, param)
     
     fun = lower(fun);
     switch fun
-        case { 'rbf', 'gauss', 'gaus' }
+        
+        case { 'rbf', 'gaussian', 'gauss', 'gaus', 'g' }
             sig = param ;
             for i = 1:num_x
                 for j = 1:num_y
@@ -32,6 +33,20 @@ function m = jacTjac(X, Y, fun, param)
                     y = Y(:, j) ;
                     m(1+(i-1)*dim_x:i*dim_x, 1+(j-1)*dim_y:j*dim_y) = ...
                         exp(-(x-y)'*(x-y)/(2*sig^2)) * ( eye(length(x))/sig^2 + (y-x)*(x-y)'/sig^4 ) ;
+                end
+            end
+
+        case { 'polynomial', 'poly', 'pol', 'p' }
+            assert( ndims(param)==2 , 'Polynomial kernel requires two parameters.' ) ;
+            deg = param(1) ;
+            t = param(2) ;
+            for i = 1:num_x
+                for j = 1:num_y
+                    x = X(:, i) ;
+                    y = Y(:, j) ;
+                    m(1+(i-1)*dim_x:i*dim_x, 1+(j-1)*dim_y:j*dim_y) = ...
+                        deg * ( x'*y + t )^(deg-1) * eye(dim_x) + ...
+                        deg*(deg-1)*( x'*y + t )^(deg-2) * y*x' ;
                 end
             end
     end

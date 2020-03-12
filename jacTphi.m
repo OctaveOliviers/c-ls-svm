@@ -1,7 +1,7 @@
 % @Author: OctaveOliviers
 % @Date:   2020-03-04 22:56:50
 % @Last Modified by:   OctaveOliviers
-% @Last Modified time: 2020-03-05 15:26:53
+% @Last Modified time: 2020-03-12 10:10:20
 
 % compute product of jacobian with feature map 
 %       m = J_phi(x)^T * phi(y) 
@@ -24,14 +24,28 @@ function m = jacTphi(X, Y, fun, param)
     
     fun = lower(fun);
     switch fun
-        case { 'rbf', 'gauss', 'gaus' }
+        
+        case { 'rbf', 'gaussian', 'gauss', 'gaus', 'g' }
             sig = param ;
             for i = 1:num_x
                 for j = 1:num_y
                     x = X(:, i) ;
                     y = Y(:, j) ;
                     m(1+(i-1)*dim_x:i*dim_x, j) = ...
-                        exp(-(x-y)'*(x-y)/(2*sig^2)) * (y-x) / sig^2 ;
+                        exp( -(x-y)'*(x-y) / (2*sig^2) ) * (y-x) / sig^2 ;
+                end
+            end
+
+        case { 'polynomial', 'poly', 'pol', 'p' }
+            assert( ndims(param)==2 , 'Polynomial kernel requires two parameters.' ) ;
+            deg = param(1) ;
+            t = param(2) ;
+            for i = 1:num_x
+                for j = 1:num_y
+                    x = X(:, i) ;
+                    y = Y(:, j) ;
+                    m(1+(i-1)*dim_x:i*dim_x, j) = ...
+                        deg * ( x'*y + t )^(deg-1) * y ;
                 end
             end
     end

@@ -1,7 +1,7 @@
 % @Author: OctaveOliviers
 % @Date:   2020-03-05 09:54:32
 % @Last Modified by:   OctaveOliviers
-% @Last Modified time: 2020-03-06 20:54:41
+% @Last Modified time: 2020-03-08 16:25:46
 
 classdef Memory_Model
 
@@ -55,6 +55,10 @@ classdef Memory_Model
 				x_old = x_new ;
 				x_new = simulate_one_step(obj, x_old) ;
 				path(:, :, end+1) = x_new ;
+
+				% if norm(x_new)>10*max(vecnorm(obj.patterns))
+				% 	break
+				% end
 			end
 
 			% visualize the update map f(x) of the layer

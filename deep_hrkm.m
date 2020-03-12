@@ -1,4 +1,9 @@
-%% deep dynamical system for memorizing patterns 
+% @Author: OctaveOliviers
+% @Date:   2020-02-24 18:47:50
+% @Last Modified by:   OctaveOliviers
+% @Last Modified time: 2020-03-08 18:08:40
+%
+% deep dynamical system for memorizing patterns 
 % Octave Oliviers - 24nd February 2020
 
 clear all

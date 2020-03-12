@@ -1,22 +1,29 @@
 % @Author: OctaveOliviers
 % @Date:   2020-03-05 09:55:31
 % @Last Modified by:   OctaveOliviers
-% @Last Modified time: 2020-03-06 10:02:55
+% @Last Modified time: 2020-03-12 10:09:42
 
 clear all
 clc
 
-dim_movements = 1 ;
-num_movements = 2 ;
-len_movements = 5 ;
+
+dim_movements = 2 ;
+num_movements = 1 ;
+len_movements = 10 ;
+
+load('data/hello_written.mat') ; dim_movements = size(z, 1) ; num_movements = 4 ; len_movements = size(z, 2) ;
 
 % create patterns to memorize
-movements = 2*randn(dim_movements, num_movements, len_movements) ;
+
+% movements = 2*randn(dim_movements, num_movements, len_movements) ;
+movements = zeros(dim_movements, num_movements, len_movements) ;
+movements(:, 1, :) = z+[1; -1.5] ; movements(:, 2, :) = -z+[-1.5; -1] ; movements(:, 3, :) = -z+[6; 3.5] ; movements(:, 4, :) = z+[-6; 3] ;
+
 
 % model architecture
 formulation = 'dual' ;
-feature_map = 'gauss' ;
-parameter   = 0.5 ;
+feature_map = 'g' ;
+parameter   = 1.5 ;
 num_layers	= len_movements-1 ;
 
 % build model to memorize patterns
@@ -29,37 +36,4 @@ model = Memory_Model_Action(num_layers, formulation, feature_map, parameter, p_e
 
 model = model.train(movements) ;
 
-model.visualize() ;
-
-% % visualize dynamical system
-% window = 5 ;
-% x = -window:0.1:window ;
-
-% % path of each data point as well as dynamical system of each layer
-% [p, f] = model.simulate(movements(:, 1, 1), x) ;
-
-% figure('position', [300, 500, 300*num_layers, 300])
-% for l = 1:num_layers
-% 	subplot(1, num_layers, l)
-% 	box	on
-% 	hold on
-% 	plot(x, x, 'color', [0 0 0])
-% 	plot(zeros(size(x)), x, 'color', [0 0 0])
-% 	plot(x, zeros(size(x)), 'color', [0 0 0])
-% 	grid on
-% 	plot(x, squeeze(f(:, :, l)), 'color', [0 0 1], 'linewidth', 1)
-% 	for i = 1:size(p, 2)
-% 		line(	[squeeze(p(1, i, l)), squeeze(p(1, i, l))], ...
-% 				[squeeze(p(1, i, l)), squeeze(p(1, i, l+1))], ...
-% 				'color', [0 0 0], 'linewidth', 1 )
-% 	end
-% 	plot(p(:, :, l), p(:, :, l), 'kx')
-% 	plot(movements(:, :, l), movements(:, :, l+1), 'rx')
-% 	hold off
-% 	xlabel('x_k')
-% 	ylabel('x_{k+1}')
-% 	ax = gca;
-% 	ax.XAxisLocation = 'origin';
-% 	ax.YAxisLocation = 'origin';
-% end
-% suptitle( join([ 'p_err = ', num2str(p_err),', p_reg = ', num2str(p_reg),', p_drv = ', num2str(p_drv) ]))
+model.visualize( movements(:, :, 1) + 0.5*randn(dim_movements, num_movements) ) ;

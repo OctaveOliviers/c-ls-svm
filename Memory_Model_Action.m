@@ -1,7 +1,7 @@
 % @Author: OctaveOliviers
 % @Date:   2020-03-05 10:01:57
 % @Last Modified by:   OctaveOliviers
-% @Last Modified time: 2020-03-06 21:00:52
+% @Last Modified time: 2020-03-12 10:00:09
 
 classdef Memory_Model_Action < Memory_Model
 	
@@ -80,6 +80,7 @@ classdef Memory_Model_Action < Memory_Model
 		    % % extract useful information
 		    dim_data = size(obj.models{1}.patterns, 1) ;
 		    num_data = size(obj.models{1}.patterns, 2) ;
+		    len_data = size(obj.models{1}.patterns, 3) ;
 
 		    % if data is one dimensional, visualize update function
 		    if (dim_data==1)
@@ -136,6 +137,35 @@ classdef Memory_Model_Action < Memory_Model
 		    % if data is 2 dimensional, visualize vector field with nullclines
 			elseif (dim_data==2)
 		    
+				figure('position', [300, 500, 600, 500])
+
+				box on
+	            hold on
+
+	            % movements to memorize
+	            for a = 1:num_data
+					plot(squeeze(obj.patterns(1, a, :)), squeeze(obj.patterns(2, a, :)), 'r-', 'linewidth', 2)
+	            end
+
+				% simulate model from initial conditions in varargin
+				if (nargin>1)
+					x_k = varargin{1} ; 
+					p 	= obj.simulate( x_k ) ;
+					
+					for i = 1:size(p, 2)
+						plot(squeeze(p(1, i, :)), squeeze(p(2, i, :)), 'color', [0 0 0], 'linewidth', 1)
+					end
+					plot(p(1, :, 1), p(2, :, 1), 'ko')
+				end
+
+				hold off
+				xlabel('x_1')
+				ylabel('x_2')
+				title( join([ 'p_err = ', num2str(obj.p_err), ...
+							', p_reg = ', num2str(obj.p_reg), ...
+							', p_drv = ', num2str(obj.p_drv) ]))
+
+				% legend('pattern', 'x_1 nullcline', 'x_2 nullcline') ;
 
 		    end
 		end

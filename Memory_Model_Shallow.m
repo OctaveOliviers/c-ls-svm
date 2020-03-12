@@ -1,7 +1,7 @@
 % @Author: OctaveOliviers
 % @Date:   2020-03-05 09:51:23
 % @Last Modified by:   OctaveOliviers
-% @Last Modified time: 2020-03-07 18:11:43
+% @Last Modified time: 2020-03-08 16:26:12
 
 classdef Memory_Model_Shallow < Memory_Model
 	
@@ -28,7 +28,7 @@ classdef Memory_Model_Shallow < Memory_Model
 			[N, P] 			= size(X) ;
 			obj.patterns 	= X ;
 
-			if ( size(varargin)==0 )
+			if ( nargin<3 )
 				Y = X ;
 			else
 				Y = varargin{1} ;
@@ -168,7 +168,7 @@ classdef Memory_Model_Shallow < Memory_Model
 				plot(obj.patterns(1, :), obj.patterns(2, :), 'rx', 'linewidth', 2)
 
 				% energy surface and nullclines
-				wdw = 8 ; % window
+				wdw = 10 ; % window
 				prec = wdw/20 ;
 				x = -wdw:prec:wdw ;
 				y = -wdw:prec:wdw ;
@@ -177,12 +177,31 @@ classdef Memory_Model_Shallow < Memory_Model
 				F = obj.simulate_one_step( [ X(:)' ; Y(:)' ] ) ;
 				f1 = reshape(F(1, :), [length(x), length(y)]) ;
 				f2 = reshape(F(2, :), [length(x), length(y)]) ;
-				e  = vecnorm( [ X(:)'-F(1, :) ; Y(:)'-F(2, :) ] ) ;
-				E = reshape(e, [length(x), length(y)]) ;
+				% e_kin = vecnorm( [ X(:)'-F(1, :) ; Y(:)'-F(2, :) ] ) ;
+				% test compute potential energy
+				% if strcmp(obj.space, 'primal')
+				% 	F = jacobian_matrix(obj.patterns, obj.phi, obj.theta) ;
+				% 	e_pot = trace( obj.W' * F * F' * obj.W ) ;
+				% else
+				% 	e_pot = zeros(1, length(x)*length(y)) ;
+				% 	for i = 1:length(x)*length(y)
+				% 		PTj = phiTjac(obj.patterns, [X(i); Y(i)], obj.phi, obj.theta) ;
+				% 		jTP = jacTphi([X(i); Y(i)], obj.patterns, obj.phi, obj.theta) ;
+				% 		JTj = jacTjac(obj.patterns, [X(i); Y(i)], obj.phi, obj.theta) ;
+				% 		jTJ = jacTjac([X(i); Y(i)], obj.patterns, obj.phi, obj.theta) ;
+
+				% 		e_pot(i) = obj.p_reg^2 * trace( (obj.L_e*PTj + obj.L_d*JTj) * (jTP*obj.L_e' + jTJ*obj.L_d') ) ;
+				% 	end
+				% end
+				% E = reshape(obj.p_err*e_kin + obj.p_drv*e_pot, [length(x), length(y)]) ;
+				%
+				% test for energy
+				% e = sum( phiTphi([ X(:)' ; Y(:)' ], obj.patterns, obj.phi, obj.theta), 2 ) ;
+				% E = reshape(e, [length(x), length(y)]) ;
 				%
 				contour(x, y, X-f1,[0, 0], 'linewidth', 1, 'color', [0.5, 0.5, 0.5], 'linestyle', '--') ;
 				contour(x, y, Y-f2,[0, 0], 'linewidth', 1, 'color', [0.5, 0.5, 0.5], 'linestyle', ':') ;
-				contour(x, y, E) ;
+				% contour(x, y, E) ;
 
 				% simulate model from initial conditions in varargin
 				if (nargin>1)
@@ -201,6 +220,8 @@ classdef Memory_Model_Shallow < Memory_Model
 				hold off
 				xlabel('x_1')
 				ylabel('x_2')
+				xlim([-wdw, wdw])
+				ylim([-wdw, wdw])
 				% axes through origin
 				% axis equal
 				title( join([ 'p_err = ', num2str(obj.p_err), ...

@@ -1,3 +1,8 @@
+% @Author: OctaveOliviers
+% @Date:   2020-02-22 15:30:10
+% @Last Modified by:   OctaveOliviers
+% @Last Modified time: 2020-03-08 11:40:54
+%
 % return Jacobian matrics in each pattern as long matrix
 %       patterns    : matrix of size num_neurons x num_patterns
 %       type        : string that identifies the chosen kernel function
@@ -16,7 +21,7 @@ function J = jacobian_matrix(patterns, type, param)
             deg = param ;           
             J = zeros( N, N*P ) ;
             for p=1:P
-              J(:, (p-1)*N+1:p*N) = diag( deg * patterns(:, p).^(deg-1)) ; 
+                J(:, (p-1)*N+1:p*N) = diag( deg * patterns(:, p).^(deg-1)) ; 
             end
             
         case 'poly_2'
@@ -32,8 +37,11 @@ function J = jacobian_matrix(patterns, type, param)
         case 'tanh'
             J = zeros( N, N*P ) ;
             for p=1:P
-              J(:, (p-1)*N+1:p*N) = diag( 1./ cosh( patterns(:, p) ).^2) ; 
+                J(:, (p-1)*N+1:p*N) = diag( 1./ cosh( patterns(:, p) ).^2) ; 
             end
+
+        case 'sign'
+            J = zeros( N, N*P ) ;
             
     end
 end
