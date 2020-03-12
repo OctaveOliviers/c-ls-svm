@@ -1,7 +1,7 @@
 % @Author: OctaveOliviers
 % @Date:   2020-03-05 09:51:23
 % @Last Modified by:   OctaveOliviers
-% @Last Modified time: 2020-03-08 16:26:12
+% @Last Modified time: 2020-03-12 10:37:46
 
 classdef Memory_Model_Shallow < Memory_Model
 	
@@ -113,13 +113,14 @@ classdef Memory_Model_Shallow < Memory_Model
 		        figure('position', [300, 500, 600, 500])
 		        
 		        x = 1.5*min(obj.patterns, [], 'all') : ...
-			    	(max(obj.patterns, [], 'all')-min(obj.patterns, [], 'all'))/10/num_data : ...
+			    	(max(obj.patterns, [], 'all')-min(obj.patterns, [], 'all'))/20/num_data : ...
 			  		1.5*max(obj.patterns, [], 'all') ;
 
 	            box on
 	            hold on
 
 	            % identity map
+	            yyaxis left
 	            plot(x, x, 'color', [0 0 0])
 
 		        % update function f(x_k)
@@ -144,6 +145,27 @@ classdef Memory_Model_Shallow < Memory_Model
 				% patterns to memorize
 				plot(obj.patterns, obj.patterns, 'rx')
 
+				% energy surface
+				e_kin = ( x-f ).^2 ;
+				% test compute potential energy
+				if strcmp(obj.space, 'primal')
+					F = jacobian_matrix(obj.patterns, obj.phi, obj.theta) ;
+					e_pot = trace( obj.W' * F * F' * obj.W ) ;
+				else
+					e_pot = zeros(1, length(x)) ;
+					for i = 1:length(x)
+						PTj = phiTjac(obj.patterns, x(i), obj.phi, obj.theta) ;
+						jTP = jacTphi(x(i), obj.patterns, obj.phi, obj.theta) ;
+						JTj = jacTjac(obj.patterns, x(i), obj.phi, obj.theta) ;
+						jTJ = jacTjac(x(i), obj.patterns, obj.phi, obj.theta) ;
+
+						e_pot(i) = obj.p_reg^2 * trace( (obj.L_e*PTj + obj.L_d*JTj) * (jTP*obj.L_e' + jTJ*obj.L_d') ) ;
+					end
+				end
+				E = obj.p_err*e_kin + obj.p_drv*e_pot ;
+				yyaxis right
+				plot(x, E, 'g-') ;
+
 	            hold off
 	            xlabel('x_k')
 	            ylabel('x_{k+1}')
@@ -151,7 +173,7 @@ classdef Memory_Model_Shallow < Memory_Model
 	            axis equal
 	            ax = gca;
 				ax.XAxisLocation = 'origin';
-				ax.YAxisLocation = 'origin';
+				% ax.YAxisLocation = 'origin';
 		        title( join([ 'p_err = ', num2str(obj.p_err), ...
 		        			', p_reg = ', num2str(obj.p_reg), ...
 		        			', p_drv = ', num2str(obj.p_drv) ]))
@@ -177,23 +199,23 @@ classdef Memory_Model_Shallow < Memory_Model
 				F = obj.simulate_one_step( [ X(:)' ; Y(:)' ] ) ;
 				f1 = reshape(F(1, :), [length(x), length(y)]) ;
 				f2 = reshape(F(2, :), [length(x), length(y)]) ;
-				% e_kin = vecnorm( [ X(:)'-F(1, :) ; Y(:)'-F(2, :) ] ) ;
+				e_kin = vecnorm( [ X(:)'-F(1, :) ; Y(:)'-F(2, :) ] ).^2 ;
 				% test compute potential energy
-				% if strcmp(obj.space, 'primal')
-				% 	F = jacobian_matrix(obj.patterns, obj.phi, obj.theta) ;
-				% 	e_pot = trace( obj.W' * F * F' * obj.W ) ;
-				% else
-				% 	e_pot = zeros(1, length(x)*length(y)) ;
-				% 	for i = 1:length(x)*length(y)
-				% 		PTj = phiTjac(obj.patterns, [X(i); Y(i)], obj.phi, obj.theta) ;
-				% 		jTP = jacTphi([X(i); Y(i)], obj.patterns, obj.phi, obj.theta) ;
-				% 		JTj = jacTjac(obj.patterns, [X(i); Y(i)], obj.phi, obj.theta) ;
-				% 		jTJ = jacTjac([X(i); Y(i)], obj.patterns, obj.phi, obj.theta) ;
+				if strcmp(obj.space, 'primal')
+					F = jacobian_matrix(obj.patterns, obj.phi, obj.theta) ;
+					e_pot = trace( obj.W' * F * F' * obj.W ) ;
+				else
+					e_pot = zeros(1, length(x)*length(y)) ;
+					for i = 1:length(x)*length(y)
+						PTj = phiTjac(obj.patterns, [X(i); Y(i)], obj.phi, obj.theta) ;
+						jTP = jacTphi([X(i); Y(i)], obj.patterns, obj.phi, obj.theta) ;
+						JTj = jacTjac(obj.patterns, [X(i); Y(i)], obj.phi, obj.theta) ;
+						jTJ = jacTjac([X(i); Y(i)], obj.patterns, obj.phi, obj.theta) ;
 
-				% 		e_pot(i) = obj.p_reg^2 * trace( (obj.L_e*PTj + obj.L_d*JTj) * (jTP*obj.L_e' + jTJ*obj.L_d') ) ;
-				% 	end
-				% end
-				% E = reshape(obj.p_err*e_kin + obj.p_drv*e_pot, [length(x), length(y)]) ;
+						e_pot(i) = obj.p_reg^2 * trace( (obj.L_e*PTj + obj.L_d*JTj) * (jTP*obj.L_e' + jTJ*obj.L_d') ) ;
+					end
+				end
+				E = reshape(obj.p_err*e_kin + obj.p_drv*e_pot, [length(x), length(y)]) ;
 				%
 				% test for energy
 				% e = sum( phiTphi([ X(:)' ; Y(:)' ], obj.patterns, obj.phi, obj.theta), 2 ) ;
@@ -201,7 +223,7 @@ classdef Memory_Model_Shallow < Memory_Model
 				%
 				contour(x, y, X-f1,[0, 0], 'linewidth', 1, 'color', [0.5, 0.5, 0.5], 'linestyle', '--') ;
 				contour(x, y, Y-f2,[0, 0], 'linewidth', 1, 'color', [0.5, 0.5, 0.5], 'linestyle', ':') ;
-				% contour(x, y, E) ;
+				contour(x, y, E) ;
 
 				% simulate model from initial conditions in varargin
 				if (nargin>1)
