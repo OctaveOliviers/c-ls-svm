@@ -1,7 +1,7 @@
 % @Author: OctaveOliviers
 % @Date:   2020-03-05 09:54:32
 % @Last Modified by:   OctaveOliviers
-% @Last Modified time: 2020-03-08 16:25:46
+% @Last Modified time: 2020-03-13 19:46:54
 
 classdef Memory_Model
 
@@ -40,6 +40,7 @@ classdef Memory_Model
 		% simulate model
 		function [path, varargout] = simulate(obj, start, varargin)
 			% start		matrix with start positions to simulate from as columns
+			% varargin 	(1) array of starting values to compute update equation
 
 			% variable to store evolution of state
 			path = zeros( [size(start), 2]) ;
@@ -51,7 +52,7 @@ classdef Memory_Model
 			path(:, :, 2) = x_new ;
 
 			% update state untill it has converged
-			while (norm(x_old-x_new) >= 1e-5)
+			while (norm(x_old-x_new) >= 1e-8)
 				x_old = x_new ;
 				x_new = simulate_one_step(obj, x_old) ;
 				path(:, :, end+1) = x_new ;
