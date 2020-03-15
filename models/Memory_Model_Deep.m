@@ -1,7 +1,7 @@
 % @Author: OctaveOliviers
 % @Date:   2020-03-05 19:26:18
 % @Last Modified by:   OctaveOliviers
-% @Last Modified time: 2020-03-15 15:41:37
+% @Last Modified time: 2020-03-15 20:18:21
 
 classdef Memory_Model_Deep < Memory_Model
 	
@@ -20,15 +20,16 @@ classdef Memory_Model_Deep < Memory_Model
 			assert( length(theta) == num_lay , 'Number of feature parameters does not match number of layers' ) ;
 
 			% superclass constructor
-			obj 			= obj@Memory_Model(space, phi, theta, p_err, p_drv, p_reg) ;
+			obj 			= obj@Memory_Model(phi, theta, p_err, p_drv, p_reg) ;
 			% subclass specific variables
 			obj.num_lay		= num_lay ;
+			obj.space 		= space ;
 			obj.models		= cell(num_lay, 1) ;
 			obj.max_iter	= 20 ;
-			obj.alpha		= 0.3 ;
+			obj.alpha		= 0.01 ;
 			% shallow model for each step of the action
 			for l = 1:num_lay
-				obj.models{l} = Memory_Model_Shallow(space{l}, phi{l}, theta{l}, p_err, p_drv, p_reg) ;
+				obj.models{l} = build_model(1, space{l}, phi{l}, theta{l}, p_err, p_drv, p_reg) ;
 			end
 		end
 
@@ -51,6 +52,9 @@ classdef Memory_Model_Deep < Memory_Model
 					obj.models{ l } = obj.models{ l }.train( H(:, :, l), H(:, :, l+1) ) ;
 				end
 
+				% evaluate objective value
+				L = obj.lagrangian()
+
 				% update hidden layers
 				for l = obj.num_lay-1:-1:1
 
@@ -72,7 +76,7 @@ classdef Memory_Model_Deep < Memory_Model
 							% end
 
 							grad = L_e_l ;
-							r = max(vecnorm(grad)) ;
+							r = max(vecnorm(grad))
 
 							H(:, :, l+1) = H(:, :, l+1) - obj.alpha * grad ;
 
@@ -81,6 +85,8 @@ classdef Memory_Model_Deep < Memory_Model
 					end
 
 				end
+				obj.patterns = H ;
+
 
 				% check for convergence
 				if ( r < 1e-5 )
@@ -95,7 +101,10 @@ classdef Memory_Model_Deep < Memory_Model
 
 		% compute value of Lagrangian
 		function L = lagrangian(obj)
-			L = obj.p_err/2 * ;
+			L = 0 ;
+			for l = 1:obj.num_lay
+				L = L + obj.models{l}.lagrangian() ;
+			end
 		end
 
 

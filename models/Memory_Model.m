@@ -1,7 +1,7 @@
 % @Author: OctaveOliviers
 % @Date:   2020-03-05 09:54:32
 % @Last Modified by:   OctaveOliviers
-% @Last Modified time: 2020-03-15 19:02:44
+% @Last Modified time: 2020-03-15 22:30:45
 
 classdef Memory_Model
 
@@ -74,28 +74,40 @@ classdef Memory_Model
 		function [E, varargout] = energy(obj, X)
 			% X 	states to compute energy, error and eigenvalues for in columns
 
-			% error term
-			err   = obj.model_error( X ) ;
-			e_kin = vecnorm( err, 2, 1 ).^2 ;
+			switch obj.phi
+				case { 'tanh' }
+					E = 1/2 * (vecnorm(X, 2, 1).^2 - 2*diag(obj.W)'*log(cosh(X)) - 2*obj.b'*X ) ;
+				
+				case { 'sign' }
+					E = 1/2 * (vecnorm(X, 2, 1).^2 - 2*diag(obj.W)'*abs(X) - 2*obj.b'*X ) ;
 
-			% derivative term
-			e_pot = zeros(1, size(X, 2)) ;
-			for p = 1:size(X, 2)
-				J = obj.model_jacobian( X(:, p) ) ;
-				e_pot(p) = trace( J'*J ) ;
-			end					
+				otherwise
+					warning('not exact formulation for energy yet');
+
+					% error term
+					err   = obj.model_error( X ) ;
+					e_kin = vecnorm( err, 2, 1 ).^2 ;
+
+					% derivative term
+					e_pot = zeros(1, size(X, 2)) ;
+					for p = 1:size(X, 2)
+						J = obj.model_jacobian( X(:, p) ) ;
+						e_pot(p) = trace( J'*J ) ;
+					end					
+
+					E = obj.p_err/2 * e_kin + obj.p_drv/2 * e_pot ;
+			end
+
 
 			if (nargout>2)
 				eig_jac = zeros( size(X) );
 				for p = 1:size(X, 2)
 					eig_jac(:, p) = eig( -obj.model_jacobian( X(:, p) ) ) ;
 				end
-			end
-
-			E = obj.p_err/2 * e_kin + obj.p_drv/2 * e_pot ;
+			end			
 
 			if (nargout>1)
-				varargout{1} = vecnorm( err, 2, 1 ) ;
+				varargout{1} = vecnorm( obj.model_error( X ), 2, 1 ) ;
 				varargout{2} = eig_jac ;
 			end
 		end

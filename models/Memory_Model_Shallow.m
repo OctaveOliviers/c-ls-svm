@@ -1,7 +1,7 @@
 % @Author: OctaveOliviers
 % @Date:   2020-03-05 09:51:23
 % @Last Modified by:   OctaveOliviers
-% @Last Modified time: 2020-03-15 17:31:46
+% @Last Modified time: 2020-03-15 22:29:00
 
 classdef Memory_Model_Shallow < Memory_Model
 

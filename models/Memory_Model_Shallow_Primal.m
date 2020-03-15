@@ -1,7 +1,7 @@
 % @Author: OctaveOliviers
 % @Date:   2020-03-15 16:25:40
 % @Last Modified by:   OctaveOliviers
-% @Last Modified time: 2020-03-15 19:01:37
+% @Last Modified time: 2020-03-15 20:16:42
 
 classdef Memory_Model_Shallow_Primal < Memory_Model_Shallow
 	
@@ -60,7 +60,7 @@ classdef Memory_Model_Shallow_Primal < Memory_Model_Shallow
 			obj.L_e	= obj.p_err * ( Y - obj.W' * f - obj.b ) ;
 			obj.L_d	= obj.p_drv * ( - obj.W' * F ) ;
 
-		    disp("model trained in primal")
+		    % disp("model trained in primal")
 		end
 
 

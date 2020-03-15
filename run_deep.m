@@ -1,10 +1,14 @@
 % @Author: OctaveOliviers
 % @Date:   2020-03-13 18:40:25
 % @Last Modified by:   OctaveOliviers
-% @Last Modified time: 2020-03-15 18:20:12
+% @Last Modified time: 2020-03-15 19:23:09
 
 clear all
 clc
+
+% import dependencies
+addpath( './models/' )
+addpath( './support/' )
 
 % parameters of patterns
 dim_patterns 	= 2 ;

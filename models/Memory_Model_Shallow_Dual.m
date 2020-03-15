@@ -1,7 +1,7 @@
 % @Author: OctaveOliviers
 % @Date:   2020-03-15 16:25:15
 % @Last Modified by:   OctaveOliviers
-% @Last Modified time: 2020-03-15 18:34:13
+% @Last Modified time: 2020-03-15 22:12:35
 
 classdef Memory_Model_Shallow_Dual < Memory_Model_Shallow
 	
@@ -59,7 +59,14 @@ classdef Memory_Model_Shallow_Dual < Memory_Model_Shallow
 			obj.L_e	= v(1:P, :)' ;
 			obj.L_d	= v(P+1:end-1, :)' ;
 
-		    disp("model trained in dual")
+			% for computable feature map also compute W
+			if ( strcmp(obj.phi, 'tanh') | strcmp(obj.phi, 'sign') )
+				P = feval(obj.phi, X) ;
+				F = jac( X, obj.phi ) ;
+				obj.W = 1/obj.p_reg * ( P*obj.L_e' + F*obj.L_d' ) ;
+			end
+
+		    % disp("model trained in dual")
 		end
 
 
