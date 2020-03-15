@@ -1,7 +1,7 @@
 % @Author: OctaveOliviers
 % @Date:   2020-03-14 19:56:52
 % @Last Modified by:   OctaveOliviers
-% @Last Modified time: 2020-03-15 12:00:57
+% @Last Modified time: 2020-03-15 14:05:36
 
 % compare capacity of different feature maps
 
@@ -43,19 +43,37 @@ for d = 1:max_dim
 end
 
 
-figure( 'position', [100, 100, 400, 300] )
+figure( 'position', [100, 100, 800, 400],'DefaultAxesFontSize', 12 )
+% set(0,'defaultaxeslinestyleorder',{'--',':','o'})
+%
+subplot(1, 2, 1)
 box on
 hold on
-plot(1:max_dim, cap_hopfld, 'linestyle', '-', 'linewidth', 1) ;
-for p = 1:length(phis)
-	errorbar(1:max_dim, data{p, 4}, sqrt(data{p, 5}/num_tests), 'linestyle', '-', 'linewidth', 1) ;
+for p = length(phis):-1:1
+	errorbar(1:max_dim, data{p, 4}, sqrt(data{p, 5}/num_tests), 'linewidth', 1) ;
 end
+plot(1:max_dim, cap_hopfld, 'linestyle', '-', 'linewidth', 1) ;
+hold off
+legend( [flip(names), 'Hopfield', ], 'location', 'best', 'FontSize', 12 )
+xlabel( 'Network size N', 'FontSize', 12 )
+ylabel( 'Network capacity P_c', 'FontSize', 12 )
+title( 'Linear scale', 'FontSize', 12 )
+%
+subplot(1, 2, 2)
+box on
+hold on
+for p = length(phis):-1:1
+	errorbar(1:max_dim, data{p, 4}, sqrt(data{p, 5}/num_tests), 'linewidth', 1) ;
+end
+plot(1:max_dim, cap_hopfld, 'linestyle', '-', 'linewidth', 1) ;
 hold off
 set(gca, 'YScale', 'log')
-legend( ['Hopfield', names], 'location', 'best' )
-xlabel( 'Network size N' )
-ylabel( 'Network maximal capacity C^*' )
-title( {'The capacity of the network', 'strongly depends on the feature map'} )
+legend( [flip(names), 'Hopfield'], 'location', 'best', 'FontSize', 12 )
+xlabel( 'Network size N', 'FontSize', 12 )
+ylabel( 'Network capacity P_c', 'FontSize', 12 )
+title( 'Logarithmic scale', 'FontSize', 12 )
+%
+suptitle( {'The capacity of a network strongly depends on its feature map'} )
 
 
 
