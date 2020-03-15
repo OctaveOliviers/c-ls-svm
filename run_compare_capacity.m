@@ -1,14 +1,18 @@
 % @Author: OctaveOliviers
 % @Date:   2020-03-14 19:56:52
 % @Last Modified by:   OctaveOliviers
-% @Last Modified time: 2020-03-15 14:05:36
+% @Last Modified time: 2020-03-15 18:31:20
 
 % compare capacity of different feature maps
 
 clear all
 clc
 
-max_dim 		= 20 ;
+% import dependencies
+addpath( './models/' )
+addpath( './support/' )
+
+max_dim 		= 5 ;
 tol				= 0.1 ;
 num_tests 		= 5 ;
 
@@ -17,6 +21,7 @@ spaces 			= {	'dual',	'dual',	'dual',			'dual' } ;
 phis 			= {	'tanh',	'sign',	'poly',			'poly' } ;
 names			= {	'tanh',	'sign',	'poly (deg 3)',	'poly (deg 5)' } ;
 thetas			= {	0, 		0, 		[3, 1],			[5, 1] } ;
+num_layers		= {	1,		1,		1,				1 } ;
 
 data 			= cell( length(phis), 4 ) ;
 [data{:, 1}] 	= deal( spaces ) ;
@@ -31,7 +36,7 @@ for d = 1:max_dim
 	for p = 1:length(phis)
 		for i = 1:num_tests
 			% capacity until recall error is larger than tol
-			cap 			= run_one_test( spaces{p}, phis{p}, thetas{p}, d, tol );
+			cap 			= run_one_test( num_layers{p}, spaces{p}, phis{p}, thetas{p}, d, tol );
 
 			mean_prev		= data{ p, 4 }(d) ;
 			% running acerage
@@ -77,7 +82,7 @@ suptitle( {'The capacity of a network strongly depends on its feature map'} )
 
 
 
-function cap = run_one_test( space, fun, param, dim, tol )
+function cap = run_one_test( num_layers, space, fun, param, dim, tol )
 	% fun 		feature map to use for test
 	% param		parameter of feature map
 	% dim		dimension of network to evaluate
@@ -92,7 +97,7 @@ function cap = run_one_test( space, fun, param, dim, tol )
 	p_err  		= 1e4 ;	% importance of error
 	p_reg  		= 1e1 ;	% importance of regularization
 	p_drv  		= 1e3 ;	% importance of minimizing derivative
-	model 		= Memory_Model_Shallow( space, fun, param, p_err, p_drv, p_reg) ;
+	model 		= build_model( num_layers, space, fun, param, p_err, p_drv, p_reg) ;
 
 	while true
 

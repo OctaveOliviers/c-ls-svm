@@ -1,10 +1,14 @@
 % @Author: OctaveOliviers
 % @Date:   2020-03-13 18:56:55
 % @Last Modified by:   OctaveOliviers
-% @Last Modified time: 2020-03-13 19:47:10
+% @Last Modified time: 2020-03-15 18:28:54
 
 clear all
 clc
+
+% import dependencies
+addpath( './models/' )
+addpath( './support/' )
 
 % parameters to play with
 % patterns
@@ -56,7 +60,7 @@ p_reg  = 1e1 ;	% importance of regularization
 p_drv  = 1e5 ;	% importance of minimizing derivative
 
 
-model = Memory_Model_Shallow(formulation, feature_map, parameter, p_err, p_drv, p_reg) ;
+model = build_model(num_layers, formulation, feature_map, parameter, p_err, p_drv, p_reg) ;
 
 model = model.train(patterns) ;
 

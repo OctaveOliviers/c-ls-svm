@@ -1,7 +1,7 @@
 % @Author: OctaveOliviers
 % @Date:   2020-03-05 10:01:57
 % @Last Modified by:   OctaveOliviers
-% @Last Modified time: 2020-03-14 18:23:57
+% @Last Modified time: 2020-03-15 18:25:31
 
 classdef Memory_Model_Action < Memory_Model
 	
@@ -13,13 +13,13 @@ classdef Memory_Model_Action < Memory_Model
 		% constructor
 		function obj = Memory_Model_Action(num_lay, space, phi, theta, p_err, p_drv, p_reg)
 			% superclass constructor
-			obj = obj@Memory_Model(space, phi, theta, p_err, p_drv, p_reg) ;
+			obj = obj@Memory_Model(phi, theta, p_err, p_drv, p_reg) ;
 			% subclass specific variables
 			obj.num_lay	= num_lay ;
 			obj.models	= cell(num_lay, 1) ;
 			% shallow model for each layer
 			for l = 1:num_lay
-				obj.models{l} = Memory_Model_Shallow(space, phi, theta, p_err, p_drv, p_reg) ;
+				obj.models{l} = build_model(1, space, phi, theta, p_err, p_drv, p_reg) ;
 			end
 		end
 
@@ -153,7 +153,7 @@ classdef Memory_Model_Action < Memory_Model
 					p 	= obj.simulate( x_k ) ;
 					
 					for i = 1:size(p, 2)
-						plot(squeeze(p(1, i, :)), squeeze(p(2, i, :)), 'color', [0 0 0], 'linewidth', 1)
+						plot(squeeze(p(1, i, :)), squeeze(p(2, i, :)), 'color', [0 0 0], 'linewidth', 1, 'linestyle', '-')
 					end
 					plot(p(1, :, 1), p(2, :, 1), 'ko')
 				end

@@ -1,11 +1,14 @@
 % @Author: OctaveOliviers
 % @Date:   2020-03-05 09:55:31
 % @Last Modified by:   OctaveOliviers
-% @Last Modified time: 2020-03-12 10:09:42
+% @Last Modified time: 2020-03-15 18:26:31
 
 clear all
 clc
 
+% import dependencies
+addpath( './models/' )
+addpath( './support/' )
 
 dim_movements = 2 ;
 num_movements = 1 ;
@@ -31,9 +34,9 @@ p_err  = 1e4 ;	% importance of error
 p_reg  = 1e1 ;	% importance of regularization
 p_drv  = 1e3 ;	% importance of minimizing derivative
 
-
+% build model
 model = Memory_Model_Action(num_layers, formulation, feature_map, parameter, p_err, p_drv, p_reg) ;
-
+% train model
 model = model.train(movements) ;
-
+% visualize model
 model.visualize( movements(:, :, 1) + 0.5*randn(dim_movements, num_movements) ) ;
