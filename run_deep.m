@@ -18,7 +18,7 @@ num_layers  	= 3 ;
 % hyper-parameters
 p_err  			= 1e4 ;	% importance of error
 p_reg  			= 1e1 ;	% importance of regularization
-p_drv  			= 1e3 ;	% importance of minimizing derivativ
+p_drv  			= 1e3 ;	% importance of minimizing derivative
 
 % initialize random number generator
 rng(10) ;
