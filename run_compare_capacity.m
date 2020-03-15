@@ -1,32 +1,33 @@
 % @Author: OctaveOliviers
 % @Date:   2020-03-14 19:56:52
 % @Last Modified by:   OctaveOliviers
-% @Last Modified time: 2020-03-15 09:35:41
+% @Last Modified time: 2020-03-15 12:00:57
 
 % compare capacity of different feature maps
 
 clear all
 clc
 
-
-max_dim 		= 10 ;
-tol 			= 1e-3 ;
-num_tests 		= 100 ;
+max_dim 		= 20 ;
+tol				= 0.1 ;
+num_tests 		= 5 ;
 
 % feature maps to test
-spaces 			= {	'dual',	'dual',	'dual',	'dual' } ;
-phis 			= {	'tanh',	'sign',	'poly',	'poly' } ;
-thetas			= {	0, 			0, 		[3, 1],	[7, 1] } ;
+spaces 			= {	'dual',	'dual',	'dual',			'dual' } ;
+phis 			= {	'tanh',	'sign',	'poly',			'poly' } ;
+names			= {	'tanh',	'sign',	'poly (deg 3)',	'poly (deg 5)' } ;
+thetas			= {	0, 		0, 		[3, 1],			[5, 1] } ;
 
 data 			= cell( length(phis), 4 ) ;
 [data{:, 1}] 	= deal( spaces ) ;
 [data{:, 2}] 	= deal( phis ) ;
 [data{:, 3}] 	= deal( thetas ) ;
-[data{:, 4:5}] 	= deal( zeros(1, 10) ) ;
+[data{:, 4:5}] 	= deal( zeros(1, max_dim) ) ;
 
-cap_hopfld 		= 0.138*1:max_dim ;
+cap_hopfld 		= 1 + 0.138*[1:max_dim] ;
 
 for d = 1:max_dim
+	d
 	for p = 1:length(phis)
 		for i = 1:num_tests
 			% capacity until recall error is larger than tol
@@ -50,7 +51,8 @@ for p = 1:length(phis)
 	errorbar(1:max_dim, data{p, 4}, sqrt(data{p, 5}/num_tests), 'linestyle', '-', 'linewidth', 1) ;
 end
 hold off
-legend( ['Hopfield', phis], 'location', 'best' )
+set(gca, 'YScale', 'log')
+legend( ['Hopfield', names], 'location', 'best' )
 xlabel( 'Network size N' )
 ylabel( 'Network maximal capacity C^*' )
 title( {'The capacity of the network', 'strongly depends on the feature map'} )
@@ -61,11 +63,11 @@ function cap = run_one_test( space, fun, param, dim, tol )
 	% fun 		feature map to use for test
 	% param		parameter of feature map
 	% dim		dimension of network to evaluate
-	% tol		tolerance for error
+	% tol_dist	ratio of minimal distance between data points that is tolerance
 
 	% cap = randn + 2 ;
 
-	data 		= rand( dim, 1 ) ;
+	data 		= 2*rand( dim, 1 ) - 1 ;
 	err_rate 	= 0 ;
 
 	% create model
@@ -74,24 +76,35 @@ function cap = run_one_test( space, fun, param, dim, tol )
 	p_drv  		= 1e3 ;	% importance of minimizing derivative
 	model 		= Memory_Model_Shallow( space, fun, param, p_err, p_drv, p_reg) ;
 
-	while err_rate < tol
+	while true
 
 		% append new data point
-		data( :, end+1 ) = rand( dim, 1 ) ;
+		data( :, end+1 ) = 2*rand( dim, 1 ) - 1 ;
+		% update tolerance as tol*
+		% tol = tol_dist*min(  ) ;
 
 		% train model
 		model = model.train( data ) ;
 
-		% simulate
+		% compute error and eigenvalues of Jacobian
+		[~, err, eigv] = model.energy( data ) ;
 
+		% stop if error on one pattern is too large
+		if ( max( err, [], 'all' ) >= tol )
+			break
+		end
 
-		% estimate error rate
+		% stop if one pattern is not (linearly) stable
+		if ( max( eigv, [], 'all' ) >= 1 )
+			break
+		end
 
 		% avoid being trapped forever
 		if size(data, 2)>10*dim
 			break
 		end
-
 	end
+
+	cap = size(data, 2)-1 ;
 	
 end

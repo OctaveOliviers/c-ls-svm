@@ -1,7 +1,7 @@
 % @Author: OctaveOliviers
 % @Date:   2020-03-05 09:51:23
 % @Last Modified by:   OctaveOliviers
-% @Last Modified time: 2020-03-14 19:24:50
+% @Last Modified time: 2020-03-15 11:19:51
 
 classdef Memory_Model_Shallow < Memory_Model
 	
@@ -97,7 +97,7 @@ classdef Memory_Model_Shallow < Memory_Model
 					obj.L_e	= v(1:P, :)' ;
 					obj.L_d	= v(P+1:end-1, :)' ;
 		    end
-		    disp("model trained")
+		    % disp("model trained")
 		end
 
 
@@ -126,6 +126,7 @@ classdef Memory_Model_Shallow < Memory_Model
 
 	            % identity map
 	            yyaxis left
+	            ylabel('x_{k+1}')
 	            plot(x, x, 'color', [0 0 0])
 
 		        % update function f(x_k)
@@ -150,14 +151,14 @@ classdef Memory_Model_Shallow < Memory_Model
 				% patterns to memorize
 				plot(obj.patterns, obj.patterns, 'rx')
 
+				yyaxis right
+				ylabel('Energy E(x_{k})')
 				% energy surface
 				E = obj.energy( x ) ;
-				yyaxis right
 				plot(x, E, 'g-') ;
 
 	            hold off
 	            xlabel('x_k')
-	            ylabel('x_{k+1}')
 	            % axes through origin
 	            % axis equal
 	            ax = gca;
