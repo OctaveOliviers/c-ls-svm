@@ -1,16 +1,17 @@
 % @Author: OctaveOliviers
 % @Date:   2020-03-04 22:56:50
 % @Last Modified by:   OctaveOliviers
-% @Last Modified time: 2020-03-12 10:10:20
+% @Last Modified time: 2020-03-14 18:22:51
 
 % compute product of jacobian with feature map 
 %       m = J_phi(x)^T * phi(y) 
 % for data in X and Y
 
-function m = jacTphi(X, Y, fun, param) 
+function m = jacTphi(X, Y, fun, varargin) 
     % X, Y      data matrix with observations in columns
     % fun 		feature map
-    % param 	parameter of feature map
+    % varargin  (1) parameters of feature map
+
 
     % extract useful variables
     num_x = size(X, 2) ;
@@ -26,7 +27,7 @@ function m = jacTphi(X, Y, fun, param)
     switch fun
         
         case { 'rbf', 'gaussian', 'gauss', 'gaus', 'g' }
-            sig = param ;
+            sig = varargin{1} ;
             for i = 1:num_x
                 for j = 1:num_y
                     x = X(:, i) ;
@@ -37,9 +38,10 @@ function m = jacTphi(X, Y, fun, param)
             end
 
         case { 'polynomial', 'poly', 'pol', 'p' }
+            param   = varargin{1} ;
             assert( ndims(param)==2 , 'Polynomial kernel requires two parameters.' ) ;
-            deg = param(1) ;
-            t = param(2) ;
+            deg     = param(1) ;
+            t       = param(2) ;
             for i = 1:num_x
                 for j = 1:num_y
                     x = X(:, i) ;
@@ -48,5 +50,16 @@ function m = jacTphi(X, Y, fun, param)
                         deg * ( x'*y + t )^(deg-1) * y ;
                 end
             end
+
+        case { 'tanh' }
+            jac_x   = jac(X, 'tanh') ;
+            phi_y   = tanh(Y) ;
+            m       = jac_x' * phi_y ;
+
+        case { 'sign' }
+            jac_x   = jac(X, 'sign') ;
+            phi_y   = sign(Y) ;
+            m       = jac_x' * phi_y ;
+
     end
 end

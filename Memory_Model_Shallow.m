@@ -1,7 +1,7 @@
 % @Author: OctaveOliviers
 % @Date:   2020-03-05 09:51:23
 % @Last Modified by:   OctaveOliviers
-% @Last Modified time: 2020-03-12 10:37:46
+% @Last Modified time: 2020-03-14 19:24:50
 
 classdef Memory_Model_Shallow < Memory_Model
 	
@@ -19,7 +19,7 @@ classdef Memory_Model_Shallow < Memory_Model
 		end
 
 
-		% train model for objective p_err/2*Tr(E^TE) + p_drv/2*Tr(JJ^T) + p_reg/2*Tr(W^TW)
+		% train model for objective p_err/2*Tr(E^TE) + p_drv/2*Tr(J^TJ) + p_reg/2*Tr(W^TW)
 		function obj = train(obj, X, varargin)
 			% X 		patterns to memorize
 			% varargin	contains Y to map patterns X to (for stacked architectures)
@@ -39,8 +39,8 @@ classdef Memory_Model_Shallow < Memory_Model
 				case {'primal', 'p'}
 					% feature map in each data point
 					f = feval(obj.phi, X) ;
-					% jacobians of feature map in each data points
-					F = jacobian_matrix(X, obj.phi, obj.theta) ;
+					% jacobians of feature map in each data point
+					F = jac(X, obj.phi, obj.theta) ;
 					% dimension of dual space
 					D = size(f, 1) ;
 
@@ -49,7 +49,7 @@ classdef Memory_Model_Shallow < Memory_Model
 					B = zeros( D+1, N ) ;
 
 					% left-hand side
-					A( 1:D, 1:D ) = f*f' + obj.p_reg*F*F'/obj.p_err ;
+					A( 1:D, 1:D ) = f*f' + obj.p_drv*F*F'/obj.p_err + obj.p_reg*eye(D)/obj.p_err ;
 					A( 1:D, end ) = sum(f, 2) ;
 					A( end, 1:D ) = sum(f, 2) ;
 					A( end, end ) = P ;
@@ -60,10 +60,13 @@ classdef Memory_Model_Shallow < Memory_Model
 
 					% compute parameters
 					v = A\B ;
-					%
-					obj.W = v(1:N, :) ;
-					obj.b = v(end, :)' ;
-		            
+					% primal
+					obj.W 	= v(1:N, :) ;
+					obj.b 	= v(end, :)' ;
+					% dual
+					obj.L_e	= obj.p_err * ( Y - obj.W' * f - obj.b ) ;
+					obj.L_d	= obj.p_drv * ( - obj.W' * F ) ;
+
 		        case {'dual', 'd'}
 					% build kernel terms
 					pTp = phiTphi(X, X, obj.phi, obj.theta) ;
@@ -88,10 +91,11 @@ classdef Memory_Model_Shallow < Memory_Model
 
 					% compute parameters
 					v = A\B ;
-					%
+					% primal
+					obj.b 	= v(end, :)' ;
+					% dual
 					obj.L_e	= v(1:P, :)' ;
 					obj.L_d	= v(P+1:end-1, :)' ;
-					obj.b 	= v(end, :)' ;
 		    end
 		    disp("model trained")
 		end
@@ -99,6 +103,7 @@ classdef Memory_Model_Shallow < Memory_Model
 
 		% visualize dynamical model
 		function visualize(obj, varargin)
+			% varargin		(1) start positions to simulate model from
 
 		    % can only visualize 1D and 2D data
 		    assert( size(obj.patterns, 1)<3 , 'Cannot visualize more than 2 dimensions.' ) ;
@@ -125,7 +130,7 @@ classdef Memory_Model_Shallow < Memory_Model
 
 		        % update function f(x_k)
 	            f = obj.simulate_one_step(x) ;
-	            plot(x, f, 'color', [0 0 1], 'linewidth', 1)
+	            plot(x, f, 'b-', 'linewidth', 1)
 
 	            % simulate model from initial conditions in varargin
 				if (nargin>1)
@@ -137,7 +142,7 @@ classdef Memory_Model_Shallow < Memory_Model
 					P(:, :, 2:2:end) = p ;
 
 					for i = 1:size(P, 2)
-						plot(squeeze(P(1, i, 1:end-1)), squeeze(P(1, i, 2:end)), 'color', [0 0 0], 'linewidth', 1)
+						plot(squeeze(P(1, i, 1:end-1)), squeeze(P(1, i, 2:end)), 'k-', 'linewidth', 0.5)
 					end
 					plot(p(:, :, 1), p(:, :, 1), 'kx')
 				end
@@ -146,23 +151,7 @@ classdef Memory_Model_Shallow < Memory_Model
 				plot(obj.patterns, obj.patterns, 'rx')
 
 				% energy surface
-				e_kin = ( x-f ).^2 ;
-				% test compute potential energy
-				if strcmp(obj.space, 'primal')
-					F = jacobian_matrix(obj.patterns, obj.phi, obj.theta) ;
-					e_pot = trace( obj.W' * F * F' * obj.W ) ;
-				else
-					e_pot = zeros(1, length(x)) ;
-					for i = 1:length(x)
-						PTj = phiTjac(obj.patterns, x(i), obj.phi, obj.theta) ;
-						jTP = jacTphi(x(i), obj.patterns, obj.phi, obj.theta) ;
-						JTj = jacTjac(obj.patterns, x(i), obj.phi, obj.theta) ;
-						jTJ = jacTjac(x(i), obj.patterns, obj.phi, obj.theta) ;
-
-						e_pot(i) = obj.p_reg^2 * trace( (obj.L_e*PTj + obj.L_d*JTj) * (jTP*obj.L_e' + jTJ*obj.L_d') ) ;
-					end
-				end
-				E = obj.p_err*e_kin + obj.p_drv*e_pot ;
+				E = obj.energy( x ) ;
 				yyaxis right
 				plot(x, E, 'g-') ;
 
@@ -170,7 +159,7 @@ classdef Memory_Model_Shallow < Memory_Model
 	            xlabel('x_k')
 	            ylabel('x_{k+1}')
 	            % axes through origin
-	            axis equal
+	            % axis equal
 	            ax = gca;
 				ax.XAxisLocation = 'origin';
 				% ax.YAxisLocation = 'origin';
@@ -197,25 +186,10 @@ classdef Memory_Model_Shallow < Memory_Model
 				[X, Y] = meshgrid(x, y) ;			
 				%
 				F = obj.simulate_one_step( [ X(:)' ; Y(:)' ] ) ;
-				f1 = reshape(F(1, :), [length(x), length(y)]) ;
-				f2 = reshape(F(2, :), [length(x), length(y)]) ;
-				e_kin = vecnorm( [ X(:)'-F(1, :) ; Y(:)'-F(2, :) ] ).^2 ;
-				% test compute potential energy
-				if strcmp(obj.space, 'primal')
-					F = jacobian_matrix(obj.patterns, obj.phi, obj.theta) ;
-					e_pot = trace( obj.W' * F * F' * obj.W ) ;
-				else
-					e_pot = zeros(1, length(x)*length(y)) ;
-					for i = 1:length(x)*length(y)
-						PTj = phiTjac(obj.patterns, [X(i); Y(i)], obj.phi, obj.theta) ;
-						jTP = jacTphi([X(i); Y(i)], obj.patterns, obj.phi, obj.theta) ;
-						JTj = jacTjac(obj.patterns, [X(i); Y(i)], obj.phi, obj.theta) ;
-						jTJ = jacTjac([X(i); Y(i)], obj.patterns, obj.phi, obj.theta) ;
-
-						e_pot(i) = obj.p_reg^2 * trace( (obj.L_e*PTj + obj.L_d*JTj) * (jTP*obj.L_e' + jTJ*obj.L_d') ) ;
-					end
-				end
-				E = reshape(obj.p_err*e_kin + obj.p_drv*e_pot, [length(x), length(y)]) ;
+				f1 = reshape( F(1, :), [length(x), length(y)] ) ;
+				f2 = reshape( F(2, :), [length(x), length(y)] ) ;
+				E = obj.energy( [ X(:)' ; Y(:)' ] ) ;
+				E = reshape( E, [length(x), length(y)]) ;
 				%
 				% test for energy
 				% e = sum( phiTphi([ X(:)' ; Y(:)' ], obj.patterns, obj.phi, obj.theta), 2 ) ;
@@ -263,10 +237,10 @@ classdef Memory_Model_Shallow < Memory_Model
 
 			switch obj.space
 
-				case {"primal", "p"}
+				case { "primal", "p" }
 		            f = obj.W' * feval(obj.phi, x) + obj.b ;
 
-		        case {"dual", "d"}
+		        case { "dual", "d" }
 					pTp = phiTphi(obj.patterns, x, obj.phi, obj.theta) ;
 					jTp = jacTphi(obj.patterns, x, obj.phi, obj.theta) ;
 

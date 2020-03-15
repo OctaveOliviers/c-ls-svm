@@ -1,7 +1,7 @@
 % @Author: OctaveOliviers
 % @Date:   2020-03-05 09:54:32
 % @Last Modified by:   OctaveOliviers
-% @Last Modified time: 2020-03-13 19:46:54
+% @Last Modified time: 2020-03-14 19:23:24
 
 classdef Memory_Model
 
@@ -67,6 +67,35 @@ classdef Memory_Model
 				x = varargin{1} ;
 				varargout{1} = obj.simulate_one_step( x ) ; ;
 			end
+		end
+
+
+		% compute energy in state X
+		function E = energy(obj, X, varargin)
+			% X 	states to compute energy from in columns
+
+			X_new = obj.simulate_one_step( X ) ;
+
+			e_kin = vecnorm( X-X_new, 2, 1 ).^2 ;
+
+			switch obj.space
+				case { "primal", "p" }
+					F = jac( obj.patterns, obj.phi, obj.theta ) ;
+					e_pot = trace( obj.W' * F * F' * obj.W ) ;
+
+				case { "dual", "d" }
+					e_pot = zeros(1, length(X)) ;
+					for i = 1:length(X)
+						PTj = phiTjac( obj.patterns, X(:, i), obj.phi, obj.theta ) ;
+						jTP = jacTphi( X(:, i), obj.patterns, obj.phi, obj.theta ) ;
+						JTj = jacTjac( obj.patterns, X(:, i), obj.phi, obj.theta ) ;
+						jTJ = jacTjac( X(:, i), obj.patterns, obj.phi, obj.theta ) ;
+
+						e_pot(i) = obj.p_reg^2 * trace( (obj.L_e*PTj + obj.L_d*JTj) * (jTP*obj.L_e' + jTJ*obj.L_d') ) ;
+					end
+			end
+
+			E = obj.p_err * e_kin + obj.p_drv * e_pot ;
 		end
 	end
 end

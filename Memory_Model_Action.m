@@ -1,7 +1,7 @@
 % @Author: OctaveOliviers
 % @Date:   2020-03-05 10:01:57
 % @Last Modified by:   OctaveOliviers
-% @Last Modified time: 2020-03-12 10:00:09
+% @Last Modified time: 2020-03-14 18:23:57
 
 classdef Memory_Model_Action < Memory_Model
 	
@@ -16,15 +16,15 @@ classdef Memory_Model_Action < Memory_Model
 			obj = obj@Memory_Model(space, phi, theta, p_err, p_drv, p_reg) ;
 			% subclass specific variables
 			obj.num_lay	= num_lay ;
-			obj.models	= cell(num_lay) ;
-			% shallow model for each step of the action
+			obj.models	= cell(num_lay, 1) ;
+			% shallow model for each layer
 			for l = 1:num_lay
 				obj.models{l} = Memory_Model_Shallow(space, phi, theta, p_err, p_drv, p_reg) ;
 			end
-
 		end
 
-		% train model for objective p_err/2*Tr(E^TE) + p_drv/2*Tr(JJ^T) + p_reg/2*Tr(W^TW)
+
+		% train model for objective p_err/2*Tr(E^TE) + p_drv/2*Tr(J^TJ) + p_reg/2*Tr(W^TW)
 		function obj = train(obj, movements)
 			% movements 	movements to memorize
 			
@@ -63,7 +63,7 @@ classdef Memory_Model_Action < Memory_Model
 				f = zeros([size(x), obj.num_lay]) ;
 
 				for l = 1:obj.num_lay		
-					f(:, :, l)		= obj.models{l}.simulate_one_step( x ) ;
+					f(:, :, l) = obj.models{l}.simulate_one_step( x ) ;
 				end
 				
 				varargout{1} = f ;

@@ -1,47 +1,37 @@
 % @Author: OctaveOliviers
 % @Date:   2020-03-13 18:40:25
 % @Last Modified by:   OctaveOliviers
-% @Last Modified time: 2020-03-13 18:43:12
-
-
-% @Author: OctaveOliviers
-% @Date:   2020-03-05 09:55:31
-% @Last Modified by:   OctaveOliviers
-% @Last Modified time: 2020-03-12 10:09:42
+% @Last Modified time: 2020-03-14 18:59:26
 
 clear all
 clc
 
-
 % parameters of patterns
-dim_patterns = 2 ;
-num_patterns = 1 ;
-% parameters of model
-num_layers   = 10 ;
+dim_patterns 	= 2 ;
+num_patterns 	= 4 ;
 
-load('data/hello_written.mat') ; dim_movements = size(z, 1) ; num_movements = 4 ; len_movements = size(z, 2) ;
+% parameters of model
+formulation		= {	'primal', 	'pimral', 	'primal'} ;
+feature_map 	= {	'tanh',		'tanh', 	'tanh'} ;
+parameter   	= 0 ;
+num_layers  	= 3 ;
+% hyper-parameters
+p_err  			= 1e4 ;	% importance of error
+p_reg  			= 1e1 ;	% importance of regularization
+p_drv  			= 1e3 ;	% importance of minimizing derivative
+
+% initialize random number generator
+rng(10) ;
 
 % create patterns to memorize
-
-% movements = 2*randn(dim_movements, num_movements, len_movements) ;
-movements = zeros(dim_movements, num_movements, len_movements) ;
-movements(:, 1, :) = z+[1; -1.5] ; movements(:, 2, :) = -z+[-1.5; -1] ; movements(:, 3, :) = -z+[6; 3.5] ; movements(:, 4, :) = z+[-6; 3] ;
-
-
-% model architecture
-formulation = 'dual' ;
-feature_map = 'g' ;
-parameter   = 1.5 ;
-num_layers	= len_movements-1 ;
-
-% build model to memorize patterns
-p_err  = 1e4 ;	% importance of error
-p_reg  = 1e1 ;	% importance of regularization
-p_drv  = 1e3 ;	% importance of minimizing derivative
-
-
-model = Memory_Model_Action(num_layers, formulation, feature_map, parameter, p_err, p_drv, p_reg) ;
-
-model = model.train(movements) ;
-
-model.visualize( movements(:, :, 1) + 0.5*randn(dim_movements, num_movements) ) ;
+patterns = 3*randn( dim_patterns, num_patterns ) ;
+% build model
+model = Memory_Model_Deep(	num_layers, 
+							formulation, 
+							feature_map, 
+							parameter, 
+							p_err, p_drv, p_reg) ;
+% train model
+model = model.train( patterns ) ;
+% visualize model
+model.visualize( randn( dim_patterns, 5 ) ) ;
