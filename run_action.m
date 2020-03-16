@@ -1,7 +1,7 @@
 % @Author: OctaveOliviers
 % @Date:   2020-03-05 09:55:31
 % @Last Modified by:   OctaveOliviers
-% @Last Modified time: 2020-03-15 18:26:31
+% @Last Modified time: 2020-03-16 16:17:07
 
 clear all
 clc
@@ -18,6 +18,8 @@ load('data/hello_written.mat') ; dim_movements = size(z, 1) ; num_movements = 4 
 
 % create patterns to memorize
 
+% initialize random number generator
+rng(10)
 % movements = 2*randn(dim_movements, num_movements, len_movements) ;
 movements = zeros(dim_movements, num_movements, len_movements) ;
 movements(:, 1, :) = z+[1; -1.5] ; movements(:, 2, :) = -z+[-1.5; -1] ; movements(:, 3, :) = -z+[6; 3.5] ; movements(:, 4, :) = z+[-6; 3] ;
@@ -25,8 +27,8 @@ movements(:, 1, :) = z+[1; -1.5] ; movements(:, 2, :) = -z+[-1.5; -1] ; movement
 
 % model architecture
 formulation = 'dual' ;
-feature_map = 'g' ;
-parameter   = 1.5 ;
+feature_map = 'gaussian' ;
+parameter   = 2 ;
 num_layers	= len_movements-1 ;
 
 % build model to memorize patterns
@@ -39,4 +41,4 @@ model = Memory_Model_Action(num_layers, formulation, feature_map, parameter, p_e
 % train model
 model = model.train(movements) ;
 % visualize model
-model.visualize( movements(:, :, 1) + 0.5*randn(dim_movements, num_movements) ) ;
+model.visualize( movements(:, :, 1) + randn(dim_movements, num_movements) ) ;

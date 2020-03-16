@@ -1,7 +1,7 @@
 % @Author: OctaveOliviers
 % @Date:   2020-03-13 18:40:25
 % @Last Modified by:   OctaveOliviers
-% @Last Modified time: 2020-03-15 19:23:09
+% @Last Modified time: 2020-03-16 18:22:09
 
 clear all
 clc
@@ -32,6 +32,6 @@ patterns = 10*rand( dim_patterns, num_patterns ) - 5 ;
 % build model
 model = build_model( num_layers, formulation, feature_map, parameter, p_err, p_drv, p_reg) ;
 % train model
-model = model.train( patterns ) ;
+model = model.train_implicit( patterns ) ;
 % visualize model
 model.visualize( 10*rand(dim_patterns, 5) - 5 ) ;

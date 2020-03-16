@@ -1,7 +1,7 @@
 % @Author: OctaveOliviers
 % @Date:   2020-03-05 19:26:18
 % @Last Modified by:   OctaveOliviers
-% @Last Modified time: 2020-03-15 20:18:21
+% @Last Modified time: 2020-03-16 18:37:17
 
 classdef Memory_Model_Deep < Memory_Model
 	
@@ -34,8 +34,8 @@ classdef Memory_Model_Deep < Memory_Model
 		end
 
 
-		% train model for objective p_err/2*Tr(E^TE) + p_drv/2*Tr(J^TJ) + p_reg/2*Tr(W^TW)
-		function obj = train(obj, X, varargin)
+		% train model to implicitely find good hidden states with target propagation
+		function obj = train_implicit(obj, X, varargin)
 			% X 		patterns to memorize
 			% varargin	contains Y to map patterns X to (for stacked architectures)
 			
@@ -95,8 +95,31 @@ classdef Memory_Model_Deep < Memory_Model
 
 			end
 
-		    disp("model trained")
+		    disp("model trained implicitly")
 		end
+
+
+
+		% train model to implicitely find good hidden states with target propagation
+		function obj = train_explicit(obj, X, H)
+			% X 		patterns to memorize
+			% H 		cell containing hidden states
+			
+			% check correctness of input
+			assert( size(H, 2)==(obj.num_lay-1), 'Passed too many hidden states. Should be one less than number of layers.' ) ;
+
+			% extract useful parameters
+			[N, P] 			= size(X) ;
+			obj.patterns 	= X ;
+
+			train_set = [ X, H, X ] ;
+			for l = 1:obj.num_lay
+				obj.models{l} = obj.models{l}.train( train_set{l}, train_set{l+1} ) ;
+			end
+
+		    disp("model trained explicitly")
+		end
+
 
 
 		% compute value of Lagrangian
@@ -106,6 +129,7 @@ classdef Memory_Model_Deep < Memory_Model
 				L = L + obj.models{l}.lagrangian() ;
 			end
 		end
+
 
 
 		% simulate model over one step

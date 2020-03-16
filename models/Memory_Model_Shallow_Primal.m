@@ -1,7 +1,7 @@
 % @Author: OctaveOliviers
 % @Date:   2020-03-15 16:25:40
 % @Last Modified by:   OctaveOliviers
-% @Last Modified time: 2020-03-15 20:16:42
+% @Last Modified time: 2020-03-16 18:47:17
 
 classdef Memory_Model_Shallow_Primal < Memory_Model_Shallow
 	
@@ -20,15 +20,19 @@ classdef Memory_Model_Shallow_Primal < Memory_Model_Shallow
 			% X 		patterns to memorize
 			% varargin	contains Y to map patterns X to (for stacked architectures)
 			
-			% extract useful parameters
-			[N, P] 			= size(X) ;
-			obj.patterns 	= X ;
-
 			if ( nargin<3 )
 				Y = X ;
 			else
 				Y = varargin{1} ;
 			end
+
+			% check correctness of input
+			assert( size(X, 2)==size(Y, 2),  'Numbr of patterns in X and Y do not match.' ) ;
+
+			% extract useful parameters
+			[Nx, P]			= size(X) ;
+			[Ny, ~]			= size(Y) ;
+			obj.patterns 	= X ;
 
 			% feature map in each data point
 			f = feval(obj.phi, X) ;
@@ -39,7 +43,7 @@ classdef Memory_Model_Shallow_Primal < Memory_Model_Shallow
 
 			% matrices for linear system AX=B
 			A = zeros( D+1, D+1 ) ;
-			B = zeros( D+1, N ) ;
+			B = zeros( D+1, Ny ) ;
 
 			% left-hand side
 			A( 1:D, 1:D ) = f*f' + obj.p_drv*F*F'/obj.p_err + obj.p_reg*eye(D)/obj.p_err ;
@@ -54,13 +58,13 @@ classdef Memory_Model_Shallow_Primal < Memory_Model_Shallow
 			% compute parameters
 			v = A\B ;
 			% primal
-			obj.W 	= v(1:N, :) ;
+			obj.W 	= v(1:D, :) ;
 			obj.b 	= v(end, :)' ;
 			% dual
 			obj.L_e	= obj.p_err * ( Y - obj.W' * f - obj.b ) ;
 			obj.L_d	= obj.p_drv * ( - obj.W' * F ) ;
 
-		    % disp("model trained in primal")
+		    disp("model trained in primal")
 		end
 
 

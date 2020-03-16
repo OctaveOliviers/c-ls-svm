@@ -1,7 +1,7 @@
 % @Author: OctaveOliviers
 % @Date:   2020-03-15 16:25:15
 % @Last Modified by:   OctaveOliviers
-% @Last Modified time: 2020-03-15 22:12:35
+% @Last Modified time: 2020-03-16 18:42:56
 
 classdef Memory_Model_Shallow_Dual < Memory_Model_Shallow
 	
@@ -20,15 +20,19 @@ classdef Memory_Model_Shallow_Dual < Memory_Model_Shallow
 			% X 		patterns to memorize
 			% varargin	contains Y to map patterns X to (for stacked architectures)
 			
-			% extract useful parameters
-			[N, P] 			= size(X) ;
-			obj.patterns 	= X ;
-
 			if ( nargin<3 )
 				Y = X ;
 			else
 				Y = varargin{1} ;
 			end
+
+			% check correctness of input
+			assert( size(X, 2)==size(Y, 2),  'Numbr of patterns in X and Y do not match.' ) ;
+
+			% extract useful parameters
+			[Nx, P]			= size(X) ;
+			[Ny, ~]			= size(Y) ;
+			obj.patterns 	= X ;
 
 			% build kernel terms
 			pTp = phiTphi(X, X, obj.phi, obj.theta) ;
@@ -36,15 +40,15 @@ classdef Memory_Model_Shallow_Dual < Memory_Model_Shallow
 			jTp = jacTphi(X, X, obj.phi, obj.theta) ;
 			jTj = jacTjac(X, X, obj.phi, obj.theta) ;
 			    
-			% % matrices for linear system AX=B
-			A = zeros( P+P*N+1, P+P*N+1 ) ;
-			B = zeros( P+P*N+1, N ) ;
+			% matrices for linear system AX=B
+			A = zeros( P+P*Nx+1, P+P*Nx+1 ) ;
+			B = zeros( P+P*Nx+1, Ny ) ;
 
 			% left-hand side
 			A(1:P,       1:P)       = pTp/obj.p_reg + eye(P)/obj.p_err ;
 			A(1:P,       P+1:end-1) = pTj/obj.p_reg ;
 			A(P+1:end-1, 1:P)       = jTp/obj.p_reg ;
-			A(P+1:end-1, P+1:end-1) = jTj/obj.p_reg + eye(P*N)/obj.p_drv ;
+			A(P+1:end-1, P+1:end-1) = jTj/obj.p_reg + eye(P*Nx)/obj.p_drv ;
 			A(1:P, 		 end)       = 1 ;
 			A(end,       1:P)       = 1 ;
 			    
@@ -66,7 +70,7 @@ classdef Memory_Model_Shallow_Dual < Memory_Model_Shallow
 				obj.W = 1/obj.p_reg * ( P*obj.L_e' + F*obj.L_d' ) ;
 			end
 
-		    % disp("model trained in dual")
+		    disp("model trained in dual")
 		end
 
 
