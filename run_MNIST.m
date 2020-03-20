@@ -1,7 +1,7 @@
 % @Author: OctaveOliviers
 % @Date:   2020-03-13 18:56:55
 % @Last Modified by:   OctaveOliviers
-% @Last Modified time: 2020-03-15 18:28:54
+% @Last Modified time: 2020-03-20 09:56:38
 
 clear all
 clc
@@ -42,14 +42,21 @@ disp("data loaded")
 
 
 % SELECT patterns
-if num_patterns == size(train_img, 3)
-    patterns = reshape(train_img, [num_neurons, size(train_img, 3)]) 
-    labels   = train_lbl ;
-else
-	rand_idx = randi(60000, 1, num_patterns) ;
-    patterns = reshape( train_img(:, :, rand_idx), [num_neurons, num_patterns] ) ;
-    labels   = train_lbl(rand_idx) ;
-end
+
+% select random patterns
+% if num_patterns == size(train_img, 3)
+%     patterns = reshape(train_img, [num_neurons, size(train_img, 3)]) 
+%     labels   = train_lbl ;
+% else
+% 	rand_idx = randi(60000, 1, num_patterns) ;
+%     patterns = reshape( train_img(:, :, rand_idx), [num_neurons, num_patterns] ) ;
+%     labels   = train_lbl(rand_idx) ;
+% end
+
+% select means of each group
+
+
+% select principal components
 
 disp("patterns selected")
 
