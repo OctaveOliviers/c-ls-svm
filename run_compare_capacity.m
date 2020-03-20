@@ -1,7 +1,7 @@
 % @Author: OctaveOliviers
 % @Date:   2020-03-14 19:56:52
 % @Last Modified by:   OctaveOliviers
-% @Last Modified time: 2020-03-15 18:31:20
+% @Last Modified time: 2020-03-20 09:15:48
 
 % compare capacity of different feature maps
 
@@ -14,7 +14,7 @@ addpath( './support/' )
 
 max_dim 		= 5 ;
 tol				= 0.1 ;
-num_tests 		= 5 ;
+num_tests 		= 1 ;
 
 % feature maps to test
 spaces 			= {	'dual',	'dual',	'dual',			'dual' } ;

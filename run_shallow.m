@@ -1,7 +1,7 @@
 % @Author: OctaveOliviers
 % @Date:   2020-03-05 10:01:18
 % @Last Modified by:   OctaveOliviers
-% @Last Modified time: 2020-03-20 08:43:13
+% @Last Modified time: 2020-03-20 09:17:52
 
 clear all
 clc
@@ -11,7 +11,7 @@ addpath( './models/' )
 addpath( './support/' )
 
 % parameters of patterns
-dim_patterns 	= 2 ;
+dim_patterns 	= 1 ;
 num_patterns 	= 5 ;
 %
 num_test		= 5 ;
@@ -31,7 +31,7 @@ p_drv  			= 1e3 ;	% importance of minimizing derivative
 rng(10) ;
 
 % create patterns to memorize
-% patterns = 18*rand( dim_patterns, num_patterns ) - 9 ;
+patterns = 18*rand( dim_patterns, num_patterns ) - 9 ;
 % patterns = -10 : 9 : 10 ;
 % patterns = [0.5*randn(dim_patterns, num_patterns)+[0; -5], ...
 % 			0.5*randn(dim_patterns, num_patterns)+[0; +5], ...
@@ -40,13 +40,13 @@ rng(10) ;
 % [X, Y] = meshgrid(-6:3:6, -6:3:6) ; patterns = [X(:)' ; Y(:)'] ;
 
 % means are spread evenly around origin
-num_groups 	= 6 ;
-z 			= exp(i*pi/1)*roots([ 1, zeros(1, num_groups-1), 1]) ;
-means 		= 5*[ real(z), imag(z) ]' ;
-patterns 	= means + randn( dim_patterns, num_groups, num_patterns ) ;
-labels		= [1:num_groups] .* ones(1, 1, num_patterns) ;
+% num_groups 	= 6 ;
+% z 			= exp(i*pi/1)*roots([ 1, zeros(1, num_groups-1), 1]) ;
+% means 		= 5*[ real(z), imag(z) ]' ;
+% patterns 	= means + randn( dim_patterns, num_groups, num_patterns ) ;
+% labels		= [1:num_groups] .* ones(1, 1, num_patterns) ;
 
-patterns 	= reshape( patterns, [ dim_patterns, num_groups*num_patterns ] ) ;
+% patterns 	= reshape( patterns, [ dim_patterns, num_groups*num_patterns ] ) ;
 
 % build model
 model = build_model( num_layers, formulation, feature_map, parameter, p_err, p_drv, p_reg ) ;
@@ -54,8 +54,9 @@ model = build_model( num_layers, formulation, feature_map, parameter, p_err, p_d
 model = model.train( patterns ) ;
 % visualize model
 % model.visualize( means + 3*randn ) ;
-test = means + randn(dim_patterns, num_groups, num_test ) ;
-model.visualize( reshape(test, [dim_patterns, num_groups*num_test] ) ) ;
+% test = means + randn(dim_patterns, num_groups, num_test ) ;
+% model.visualize( reshape(test, [dim_patterns, num_groups*num_test] ) ) ;
+model.visualize() ;
 
 % isequal(model.W, model.W')
 

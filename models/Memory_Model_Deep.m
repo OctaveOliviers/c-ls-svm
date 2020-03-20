@@ -1,12 +1,13 @@
 % @Author: OctaveOliviers
 % @Date:   2020-03-05 19:26:18
 % @Last Modified by:   OctaveOliviers
-% @Last Modified time: 2020-03-20 08:41:38
+% @Last Modified time: 2020-03-20 09:15:11
 
 classdef Memory_Model_Deep < Memory_Model
 	
 	properties
 		models		% cell of shallow models in each layer
+		num_lay		% number of layers
 		max_iter	% maximum number of iterations during training
 		alpha		% learning rate for gradient descent in hidden states
 	end
@@ -20,7 +21,7 @@ classdef Memory_Model_Deep < Memory_Model
 			assert( length(theta) == num_lay , 'Number of feature parameters does not match number of layers' ) ;
 
 			% superclass constructor
-			obj 			= obj@Memory_Model(phi, theta, p_err, p_drv, p_reg) ;
+			obj 			= obj@Memory_Model() ;
 			% subclass specific variables
 			obj.num_lay		= num_lay ;
 			%obj.space 		= space ;

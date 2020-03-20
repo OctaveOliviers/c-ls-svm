@@ -1,19 +1,20 @@
 % @Author: OctaveOliviers
 % @Date:   2020-03-05 10:01:57
 % @Last Modified by:   OctaveOliviers
-% @Last Modified time: 2020-03-16 15:02:58
+% @Last Modified time: 2020-03-20 09:14:23
 
 classdef Memory_Model_Action < Memory_Model
 	
 	properties
 		models		% cell of shallow models that represent each step of the action
+		num_lay		% number of layers / steps in the movement
 	end
 
 	methods
 		% constructor
 		function obj = Memory_Model_Action(num_lay, space, phi, theta, p_err, p_drv, p_reg)
 			% superclass constructor
-			obj = obj@Memory_Model(phi, theta, p_err, p_drv, p_reg) ;
+			obj = obj@Memory_Model() ;
 			% subclass specific variables
 			obj.num_lay	= num_lay ;
 			obj.models	= cell(num_lay, 1) ;

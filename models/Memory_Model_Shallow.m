@@ -1,11 +1,13 @@
 % @Author: OctaveOliviers
 % @Date:   2020-03-05 09:51:23
 % @Last Modified by:   OctaveOliviers
-% @Last Modified time: 2020-03-20 08:45:18
+% @Last Modified time: 2020-03-20 09:18:43
 
 classdef Memory_Model_Shallow < Memory_Model
 
 	properties
+		% model information
+		name = 'Shallow network'
 		% model architecture
 		space 		% 'primal' or 'dual'
 		phi			% feature map as string
