@@ -1,39 +1,21 @@
 % @Author: OctaveOliviers
 % @Date:   2020-03-05 09:54:32
 % @Last Modified by:   OctaveOliviers
-% @Last Modified time: 2020-03-16 22:40:18
+% @Last Modified time: 2020-03-20 09:01:34
 
 classdef Memory_Model
 
 	properties
 		patterns
-		% model architecture
-		space 		% 'primal' or 'dual'
-		phi			% feature map as string
-		theta		% parameter of feature map
-		num_lay		% number of layers
-		% model hyper-parameters
-		p_err		% importance of minimizing error
-		p_drv		% importance of minimizing derivative
-		p_reg		% importance of regularization
 		% model parameters
 		W 			% primal weights
-		L_e			% dual Lagrange parameters for error
-		L_d			% dual Lagrange parameters for derivative
-		b		%	 bias
+		b			% bias
 	end
 
 	methods
 		% constructor
-		function obj = Memory_Model(phi, theta, p_err, p_drv, p_reg)
-			% architecture
-			% obj.space 	= space ;	% string
-			obj.phi 	= phi ;		% string
-			obj.theta 	= theta ;	% float
-			% hyper-parameters
-			obj.p_err 	= p_err ;	% float
-			obj.p_drv 	= p_drv ;	% float
-			obj.p_reg 	= p_reg ;	% float
+		function obj = Memory_Model()
+			
 		end
 
 
@@ -57,9 +39,9 @@ classdef Memory_Model
 				x_new = simulate_one_step(obj, x_old) ;
 				path(:, :, end+1) = x_new ;
 
-				% if norm(x_new)>10*max(vecnorm(obj.patterns))
-				% 	break
-				% end
+				if norm(x_new)>10*max(vecnorm(obj.patterns))
+					break
+				end
 			end
 
 			% visualize the update map f(x) of the layer
@@ -158,9 +140,9 @@ classdef Memory_Model
 		        
 		        figure('position', [300, 500, 400, 300])
 		        
-		        x = 1.5*min(obj.patterns, [], 'all') : ...
+		        x = -1+1.5*min(obj.patterns, [], 'all') : ...
 			    	(max(obj.patterns, [], 'all')-min(obj.patterns, [], 'all'))/20/num_data : ...
-			  		1.5*max(obj.patterns, [], 'all') ;
+			  		1+1.5*max(obj.patterns, [], 'all') ;
 
 	            box on
 	            hold on
@@ -205,9 +187,7 @@ classdef Memory_Model
 	            ax = gca;
 				ax.XAxisLocation = 'origin';
 				% ax.YAxisLocation = 'origin';
-		        title( join([ 'p_err = ', num2str(obj.p_err), ...
-		        			', p_reg = ', num2str(obj.p_reg), ...
-		        			', p_drv = ', num2str(obj.p_drv) ]))
+		        title( obj.name )
 		        % title('Polynomial kernel (d=5, t=1)')
 		        legend( [l_patterns, l_update, l_energy, l_identity ], {'Pattern', 'Update equation', 'Energy', 'Identity map'} , 'location', 'northwest')
 

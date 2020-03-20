@@ -1,7 +1,7 @@
 % @Author: OctaveOliviers
 % @Date:   2020-03-05 19:26:18
 % @Last Modified by:   OctaveOliviers
-% @Last Modified time: 2020-03-16 18:37:17
+% @Last Modified time: 2020-03-20 08:41:38
 
 classdef Memory_Model_Deep < Memory_Model
 	
@@ -23,7 +23,7 @@ classdef Memory_Model_Deep < Memory_Model
 			obj 			= obj@Memory_Model(phi, theta, p_err, p_drv, p_reg) ;
 			% subclass specific variables
 			obj.num_lay		= num_lay ;
-			obj.space 		= space ;
+			%obj.space 		= space ;
 			obj.models		= cell(num_lay, 1) ;
 			obj.max_iter	= 20 ;
 			obj.alpha		= 0.01 ;
@@ -60,7 +60,7 @@ classdef Memory_Model_Deep < Memory_Model
 
 					assert( strcmp(obj.models{l}.phi, 'sign'), 'deep target only for sign(x) yet' )
 
-					switch obj.space{ l }
+					switch obj.models{ l }.space
 						case {'primal', 'p'}
 							L_e_l 	= obj.models{ l }.L_e ; 
 							% F_lp1	= jac( H(:, :, l), obj.phi{l+1}, obj.theta{l+1} ) ;
@@ -126,7 +126,7 @@ classdef Memory_Model_Deep < Memory_Model
 		function L = lagrangian(obj)
 			L = 0 ;
 			for l = 1:obj.num_lay
-				L = L + obj.models{l}.lagrangian() ;
+				L = L + obj.models{ l }.lagrangian() ;
 			end
 		end
 

@@ -1,7 +1,7 @@
 % @Author: OctaveOliviers
 % @Date:   2020-03-15 16:25:15
 % @Last Modified by:   OctaveOliviers
-% @Last Modified time: 2020-03-16 18:42:56
+% @Last Modified time: 2020-03-20 08:08:00
 
 classdef Memory_Model_Shallow_Dual < Memory_Model_Shallow
 	
@@ -24,10 +24,10 @@ classdef Memory_Model_Shallow_Dual < Memory_Model_Shallow
 				Y = X ;
 			else
 				Y = varargin{1} ;
-			end
 
-			% check correctness of input
-			assert( size(X, 2)==size(Y, 2),  'Numbr of patterns in X and Y do not match.' ) ;
+				% check correctness of input
+				assert( size(X, 2)==size(Y, 2),  'Numbr of patterns in X and Y do not match.' ) ;
+			end	
 
 			% extract useful parameters
 			[Nx, P]			= size(X) ;
