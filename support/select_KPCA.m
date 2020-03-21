@@ -1,7 +1,7 @@
 % @Author: OctaveOliviers
 % @Date:   2020-03-20 11:05:20
 % @Last Modified by:   OctaveOliviers
-% @Last Modified time: 2020-03-20 11:34:33
+% @Last Modified time: 2020-03-21 08:39:10
 
 % select the k principal components of each cluster
 %
@@ -27,25 +27,19 @@ function PCs = select_KPCA(data, labels, k, kernel_fct, varargin)
 	num_labels 	= length(Labels) ;
 
 	% preallocate memory
-	protos 	= zeros( dim_data, k, num_labels ) ;
+	PCs = zeros( dim_data, k, num_labels ) ;
 
 	for i = 1:num_labels
 
 		% select data from l^th cluster
 		data_l = data( :, labels == Labels(i) ) ;
 
-		[~, eig_vec] = kpca(data_l', kernel_fct, varargin{:} ) ;
+		[eig_val, eig_vec] = kpca( data_l, kernel_fct, varargin{:}, 'eigs', k, 'r' ) ;
+		% eig_vec = eig_vec ./ sum(abs(eig_vec), 1) ;
 
-		% mean of X
-		mean_l = mean(data_l, 2) ;
+		norm(eig_vec(:, 1), 2)
 
-		% compute similarity between mean and each cluster element
-		D = phiTphi( mean_l, data_l, d_measure, varargin{:} ) ;
-
-		% fill prototypes
-		[~, order] 		= sort(D) ;
-		sorted_X 		= data_l(:, order) ;
-		protos(:, :, i) = sorted_X(:, 1:k) ;
+		PCs(:, :, i) = data_l * eig_vec ;
 	end
 
 end
