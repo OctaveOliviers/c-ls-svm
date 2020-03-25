@@ -1,7 +1,7 @@
 % @Author: OctaveOliviers
 % @Date:   2020-03-20 11:05:20
 % @Last Modified by:   OctaveOliviers
-% @Last Modified time: 2020-03-21 08:39:10
+% @Last Modified time: 2020-03-21 15:53:52
 
 % select the k principal components of each cluster
 %
@@ -37,7 +37,7 @@ function PCs = select_KPCA(data, labels, k, kernel_fct, varargin)
 		[eig_val, eig_vec] = kpca( data_l, kernel_fct, varargin{:}, 'eigs', k, 'r' ) ;
 		% eig_vec = eig_vec ./ sum(abs(eig_vec), 1) ;
 
-		norm(eig_vec(:, 1), 2)
+		% norm(eig_vec(:, 1), 2)
 
 		PCs(:, :, i) = data_l * eig_vec ;
 	end

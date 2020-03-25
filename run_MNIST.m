@@ -1,7 +1,7 @@
 % @Author: OctaveOliviers
 % @Date:   2020-03-13 18:56:55
 % @Last Modified by:   OctaveOliviers
-% @Last Modified time: 2020-03-21 08:46:10
+% @Last Modified time: 2020-03-21 15:53:57
 
 % clear all
 % clc
@@ -12,7 +12,7 @@
 
 % parameters to play with
 % patterns
-num_protos		= 10 ;		% number of prototypes to select for each label
+num_protos		= 3 ;		% number of prototypes to select for each label
 % num_patterns    = 10 ;		% number of patterns to store in state space
 % model
 formulation 	= 'dual' ; 
