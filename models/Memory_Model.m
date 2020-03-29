@@ -1,11 +1,14 @@
 % @Author: OctaveOliviers
 % @Date:   2020-03-05 09:54:32
 % @Last Modified by:   OctaveOliviers
-% @Last Modified time: 2020-03-20 09:01:34
+% @Last Modified time: 2020-03-28 15:08:29
 
 classdef Memory_Model
 
 	properties
+		% model information
+		name = 'Memory model'
+		% 
 		patterns
 		% model parameters
 		W 			% primal weights
@@ -51,6 +54,13 @@ classdef Memory_Model
 			end
 		end
 
+
+		% error of model E = X - W' * phi(X) - B
+		function E = error(obj, X)
+			% X		states to compute error in
+
+			E = X - obj.simulate_one_step( X ) ;
+		end
 
 
 		% compute energy in state X
@@ -174,11 +184,11 @@ classdef Memory_Model
 	            ylabel('x_{k+1}')
 	            l_identity = plot(x, x, 'color', [0.4 0.4 0.4]) ;
 
-				yyaxis right
-				% energy surface
-				E = obj.energy( x ) ;
-				l_energy = plot(x, E, 'linestyle', '-.', 'color', [0.8500, 0.3250, 0.0980], 'linewidth', 1) ;
-				ylabel('Energy E(x_{k})')
+				% yyaxis right
+				% % energy surface
+				% E = obj.energy( x ) ;
+				% l_energy = plot(x, E, 'linestyle', '-.', 'color', [0.8500, 0.3250, 0.0980], 'linewidth', 1) ;
+				% ylabel('Energy E(x_{k})')
 
 	            hold off
 	            xlabel('x_k')
@@ -189,7 +199,7 @@ classdef Memory_Model
 				% ax.YAxisLocation = 'origin';
 		        title( obj.name )
 		        % title('Polynomial kernel (d=5, t=1)')
-		        legend( [l_patterns, l_update, l_energy, l_identity ], {'Pattern', 'Update equation', 'Energy', 'Identity map'} , 'location', 'northwest')
+		        % legend( [l_patterns, l_update, l_energy, l_identity ], {'Pattern', 'Update equation', 'Energy', 'Identity map'} , 'location', 'northwest')
 
 		    % if data is 2 dimensional, visualize vector field with nullclines
 			elseif (dim_data==2)

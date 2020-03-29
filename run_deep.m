@@ -1,7 +1,7 @@
 % @Author: OctaveOliviers
 % @Date:   2020-03-13 18:40:25
 % @Last Modified by:   OctaveOliviers
-% @Last Modified time: 2020-03-16 18:22:09
+% @Last Modified time: 2020-03-28 11:24:18
 
 clear all
 clc
@@ -11,7 +11,7 @@ addpath( './models/' )
 addpath( './support/' )
 
 % parameters of patterns
-dim_patterns 	= 2 ;
+dim_patterns 	= 1 ;
 num_patterns 	= 4 ;
 
 % parameters of model

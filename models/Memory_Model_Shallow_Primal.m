@@ -1,7 +1,7 @@
 % @Author: OctaveOliviers
 % @Date:   2020-03-15 16:25:40
 % @Last Modified by:   OctaveOliviers
-% @Last Modified time: 2020-03-20 08:07:49
+% @Last Modified time: 2020-03-28 15:16:58
 
 classdef Memory_Model_Shallow_Primal < Memory_Model_Shallow
 	
@@ -11,7 +11,9 @@ classdef Memory_Model_Shallow_Primal < Memory_Model_Shallow
 			% superclass constructor
 			obj@Memory_Model_Shallow(phi, theta, p_err, p_drv, p_reg) ;
 			% subclass secific variable
-			obj.space = 'primal' ;
+			obj.space 	= 'primal' ;
+			% model information
+			obj.name 	= join([ '1-layered network (', phi, ')']) ;
 		end
 
 
@@ -32,7 +34,7 @@ classdef Memory_Model_Shallow_Primal < Memory_Model_Shallow
 			% extract useful parameters
 			[Nx, P]			= size(X) ;
 			[Ny, ~]			= size(Y) ;
-			obj.patterns 	= X ;
+			obj.patterns 	= Y ;
 
 			% feature map in each data point
 			f = feval(obj.phi, X) ;
@@ -71,21 +73,13 @@ classdef Memory_Model_Shallow_Primal < Memory_Model_Shallow
 		% compute value of Lagrangian
 		function L = lagrangian(obj)
 			% error term
-			E = obj.model_error( obj.patterns ) ;
+			E = obj.error( obj.patterns ) ;
 			% derivative term
 			J = obj.model_jacobian( obj.patterns ) ;
 			% regularization term
 			W = obj.W ;
 
 			L = obj.p_err/2 ;
-		end
-
-
-		% error of model E = X - W' * phi(X) - B
-		function E = model_error(obj, X)
-			% X		states to compute error in
-
-			E = X - obj.simulate_one_step( X ) ;
 		end
 
 

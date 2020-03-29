@@ -1,7 +1,7 @@
 % @Author: OctaveOliviers
 % @Date:   2020-03-15 16:54:15
 % @Last Modified by:   OctaveOliviers
-% @Last Modified time: 2020-03-15 18:31:49
+% @Last Modified time: 2020-03-28 15:14:03
 
 function model = build_model( num_layers, formulation, feature_map, parameter, p_err, p_drv, p_reg )
 
@@ -19,6 +19,6 @@ function model = build_model( num_layers, formulation, feature_map, parameter, p
 		end
 
 	else
-		model = Memory_Model_Deep(num_layers, formulation, feature_map, parameter, p_err, p_drv, p_reg) ;
+		model = Memory_Model_Deep( num_layers, formulation, feature_map, parameter, p_err, p_drv, p_reg ) ;
 	end
 end

@@ -1,7 +1,7 @@
 % @Author: OctaveOliviers
 % @Date:   2020-03-15 16:25:15
 % @Last Modified by:   OctaveOliviers
-% @Last Modified time: 2020-03-20 08:08:00
+% @Last Modified time: 2020-03-28 15:18:01
 
 classdef Memory_Model_Shallow_Dual < Memory_Model_Shallow
 	
@@ -12,6 +12,8 @@ classdef Memory_Model_Shallow_Dual < Memory_Model_Shallow
 			obj@Memory_Model_Shallow(phi, theta, p_err, p_drv, p_reg) ;
 			% subclass secific variable
 			obj.space = 'dual' ;
+			% model information
+			obj.name 	= join([ '1-layered network (', phi, ')']) ;
 		end
 
 
@@ -32,7 +34,7 @@ classdef Memory_Model_Shallow_Dual < Memory_Model_Shallow
 			% extract useful parameters
 			[Nx, P]			= size(X) ;
 			[Ny, ~]			= size(Y) ;
-			obj.patterns 	= X ;
+			obj.patterns 	= Y ;
 
 			% build kernel terms
 			pTp = phiTphi(X, X, obj.phi, obj.theta) ;
@@ -77,7 +79,7 @@ classdef Memory_Model_Shallow_Dual < Memory_Model_Shallow
 		% compute value of Lagrangian
 		function L = lagrangian(obj)
 			% error term
-			E = obj.model_error( obj.patterns ) ;
+			E = obj.error( obj.patterns ) ;
 			% derivative term
 			J = obj.model_jacobian( obj.patterns ) ;
 			% regularization term
@@ -89,14 +91,6 @@ classdef Memory_Model_Shallow_Dual < Memory_Model_Shallow
 								+ obj.L_d*FTP*obj.L_e' + obj.L_d*FTF*obj.L_d' ) ;
 
 			L = obj.p_err/2 * trace(E'*E) + obj.p_drv/2 * trace(J'*J) + obj.p_reg/2 * trace(WTW) ;
-		end
-
-
-		% error of model E = X - W' * phi(X) - B
-		function E = model_error(obj, X)
-			% X		states to compute error in
-
-			E = X - obj.simulate_one_step( X ) ;
 		end
 
 

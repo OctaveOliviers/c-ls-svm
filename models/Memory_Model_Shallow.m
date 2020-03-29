@@ -1,13 +1,11 @@
 % @Author: OctaveOliviers
 % @Date:   2020-03-05 09:51:23
 % @Last Modified by:   OctaveOliviers
-% @Last Modified time: 2020-03-20 09:18:43
+% @Last Modified time: 2020-03-28 15:15:30
 
 classdef Memory_Model_Shallow < Memory_Model
 
-	properties
-		% model information
-		name = 'Shallow network'
+	properties		
 		% model architecture
 		space 		% 'primal' or 'dual'
 		phi			% feature map as string
@@ -26,7 +24,7 @@ classdef Memory_Model_Shallow < Memory_Model
 		% constructor
 		function obj = Memory_Model_Shallow(phi, theta, p_err, p_drv, p_reg)
 			% superclass constructor
-			obj@Memory_Model()
+			obj@Memory_Model() ;
 			
 			% subclass specific variables
 			obj.num_lay	= 1 ;
@@ -37,6 +35,8 @@ classdef Memory_Model_Shallow < Memory_Model
 			obj.p_err 	= p_err ;	% float
 			obj.p_drv 	= p_drv ;	% float
 			obj.p_reg 	= p_reg ;	% float
+			% model information
+			obj.name 	= 'Shallow network' ;
 		end
 	end
 end
