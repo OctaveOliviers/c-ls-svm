@@ -1,7 +1,8 @@
-% @Author: OctaveOliviers
-% @Date:   2020-03-20 11:35:49
-% @Last Modified by:   OctaveOliviers
-% @Last Modified time: 2020-03-20 11:40:08
+% Created  by OctaveOliviers
+%          on 2020-03-28 11:22:11
+%
+% Modified on 2020-03-29 19:34:18
+
 function omega = kernel_matrix(Xtrain,kernel_type, kernel_pars,Xt)
 % Construct the positive (semi-) definite and symmetric kernel matrix
 %

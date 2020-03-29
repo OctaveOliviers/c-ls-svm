@@ -1,22 +1,22 @@
-% @Author: OctaveOliviers
-% @Date:   2020-03-15 14:34:35
-% @Last Modified by:   OctaveOliviers
-% @Last Modified time: 2020-03-29 16:50:45
+% Created  by OctaveOliviers
+%          on 2020-03-29 16:54:38
+%
+% Modified on 2020-03-29 19:33:53
 
 % compute Hessian of each component of the feature map in each pattern
-%	input
+%   input
 %       patterns    : matrix of size num_neurons x num_patterns
 %       type        : string that identifies the chosen feature map
 %       varargin    : (1) parameters of feature map
-%	output
-%		H 			: matrix fo size [ dim patterns , (dim patterns x num patterns), dim dual space ]
+%   output
+%       H           : matrix fo size [ dim patterns , (dim patterns x num patterns), dim dual space ]
 %
 % only for explicitely computable feature maps
 
 function H = hes( patterns, type, varargin )
 
-	% extract useful parameters
-	[N, P] = size(patterns);
+    % extract useful parameters
+    [N, P] = size(patterns);
 
     type = lower(type);
     switch type

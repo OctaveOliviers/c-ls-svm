@@ -1,4 +1,7 @@
-function [Xd,lam,U] = denoise_kpca(Xo,A1,A2,A3,A4,A5)
+% Created  by OctaveOliviers
+%          on 2020-03-28 11:22:11
+%
+% Modified on 2020-03-29 19:33:42
 % Reconstruct the data mapped on the first principal components
 % 
 % >> Xd = denoise_kpca(X, kernel, kernel_par);

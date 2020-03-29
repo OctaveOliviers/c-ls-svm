@@ -1,7 +1,7 @@
-% @Author: OctaveOliviers
-% @Date:   2020-03-20 11:20:11
-% @Last Modified by:   OctaveOliviers
-% @Last Modified time: 2020-03-21 08:26:29
+% Created  by OctaveOliviers
+%          on 2020-03-28 11:22:11
+%
+% Modified on 2020-03-29 19:34:24
 
 % adapted from LS-SVMlab1.8 - https://www.esat.kuleuven.be/sista/lssvmlab/
 

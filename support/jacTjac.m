@@ -1,7 +1,7 @@
-% @Author: OctaveOliviers
-% @Date:   2020-03-04 22:58:16
-% @Last Modified by:   OctaveOliviers
-% @Last Modified time: 2020-03-14 18:23:19
+% Created  by OctaveOliviers
+%          on 2020-03-16 22:59:46
+%
+% Modified on 2020-03-29 19:34:06
 
 % compute product of jacobians 
 %       m = J_phi(x)^T * J_phi(y) 
@@ -9,7 +9,7 @@
 
 function m = jacTjac(X, Y, fun, varargin) 
     % X, Y      data matrix with observations in columns
-    % fun 		feature map
+    % fun       feature map
     % varargin  (1) parameters of feature map
 
     % extract useful variables

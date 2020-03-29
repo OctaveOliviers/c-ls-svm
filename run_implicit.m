@@ -1,7 +1,7 @@
-% @Author: OctaveOliviers
-% @Date:   2020-03-28 12:26:03
-% @Last Modified by:   OctaveOliviers
-% @Last Modified time: 2020-03-29 17:03:43
+% Created  by OctaveOliviers
+%          on 2020-03-29 17:04:25
+%
+% Modified on 2020-03-29 19:35:51
 
 clear all
 clc

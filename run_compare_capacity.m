@@ -1,7 +1,7 @@
-% @Author: OctaveOliviers
-% @Date:   2020-03-14 19:56:52
-% @Last Modified by:   OctaveOliviers
-% @Last Modified time: 2020-03-20 09:15:48
+% Created  by OctaveOliviers
+%          on 2020-03-29 17:04:32
+%
+% Modified on 2020-03-29 19:35:29
 
 % compare capacity of different feature maps
 

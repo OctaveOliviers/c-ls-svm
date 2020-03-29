@@ -1,7 +1,7 @@
-% @Author: OctaveOliviers
-% @Date:   2020-03-04 22:56:29
-% @Last Modified by:   OctaveOliviers
-% @Last Modified time: 2020-03-20 11:58:37
+% Created  by OctaveOliviers
+%          on 2020-03-28 11:22:11
+%
+% Modified on 2020-03-29 19:34:34
 
 % compute kernel matrix (similarity measure) 
 %       m = phi(x)^T * phi(y) 
@@ -9,7 +9,7 @@
 
 function m = phiTphi(X, Y, fun, varargin) 
     % X, Y      data matrix with observations in columns
-    % fun 		feature map
+    % fun       feature map
     % varargin  (1) parameters of feature map
 
     % extract useful variables
