@@ -1,7 +1,7 @@
 % @Author: OctaveOliviers
 % @Date:   2020-03-05 19:26:18
 % @Last Modified by:   OctaveOliviers
-% @Last Modified time: 2020-03-28 15:12:25
+% @Last Modified time: 2020-03-29 11:18:07
 
 classdef Memory_Model_Deep < Memory_Model
 	
@@ -30,7 +30,7 @@ classdef Memory_Model_Deep < Memory_Model
 				obj.models		= varargin{1} ;
 				obj.max_iter	= 20 ;
 				obj.alpha		= 0.01 ;
-				obj.patterns	= varargin{1}{end}.patterns ;
+				obj.X			= varargin{1}{1}.X ;
 				obj.name 		= join([ num2str(obj.num_lay), '-layered network (']) ;
 				for l = 1:obj.num_lay
 					obj.name 	= append( obj.name, join([obj.models{l}.phi, ', ']) ) ;
@@ -63,11 +63,11 @@ classdef Memory_Model_Deep < Memory_Model
 			
 			% extract useful parameters
 			[N, P] 			= size(X) ;
-			obj.patterns 	= repmat( X, 1, 1, obj.num_lay+1 ) ;
+			obj.X 			= repmat( X, 1, 1, obj.num_lay+1 ) ;
 
 			for i = 1:obj.max_iter
 				% hidden representations of patterns
-				H = obj.patterns ;
+				H = obj.X ;
 
 				% train each layer
 				for l = 1:obj.num_lay
@@ -107,7 +107,7 @@ classdef Memory_Model_Deep < Memory_Model
 					end
 
 				end
-				obj.patterns = H ;
+				obj.X = H ;
 
 
 				% check for convergence
@@ -131,8 +131,8 @@ classdef Memory_Model_Deep < Memory_Model
 			assert( size(H, 2)==(obj.num_lay-1), 'Passed too many hidden states. Should be one less than number of layers.' ) ;
 
 			% extract useful parameters
-			[N, P] 			= size(X) ;
-			obj.patterns 	= X ;
+			[N, P] 	= size(X) ;
+			obj.X 	= X ;
 
 			train_set = [ X, H, X ] ;
 			for l = 1:obj.num_lay
@@ -143,7 +143,6 @@ classdef Memory_Model_Deep < Memory_Model
 		end
 
 
-
 		% compute value of Lagrangian
 		function L = lagrangian( obj )
 			L = 0 ;
@@ -151,7 +150,6 @@ classdef Memory_Model_Deep < Memory_Model
 				L = L + obj.models{ l }.lagrangian() ;
 			end
 		end
-
 
 
 		% simulate model over one step

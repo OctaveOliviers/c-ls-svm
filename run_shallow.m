@@ -1,7 +1,7 @@
 % @Author: OctaveOliviers
 % @Date:   2020-03-05 10:01:18
 % @Last Modified by:   OctaveOliviers
-% @Last Modified time: 2020-03-28 14:29:23
+% @Last Modified time: 2020-03-29 11:15:48
 
 clear all
 clc
@@ -17,10 +17,10 @@ num_patterns 	= 5 ;
 num_test		= 5 ;
 
 % aprameters of model
-formulation = 'dual' ; feature_map = 'p' ; parameter = [3, 1] ;
+% formulation = 'dual' ; feature_map = 'p' ; parameter = [3, 1] ;
 % formulation = 'dual' ; feature_map = 'g' ; parameter = 3 ;
 % formulation = 'dual' ; feature_map = 'sign' ; parameter = 0 ;
-% formulation = 'primal' ; feature_map = 'tanh' ; parameter = 0 ;
+formulation = 'primal' ; feature_map = 'tanh' ; parameter = 0 ;
 num_layers		= 1 ;
 % hyper-parameters
 p_err  			= 1e4 ;	% importance of error

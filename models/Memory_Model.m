@@ -1,18 +1,22 @@
 % @Author: OctaveOliviers
 % @Date:   2020-03-05 09:54:32
 % @Last Modified by:   OctaveOliviers
-% @Last Modified time: 2020-03-28 15:08:29
+% @Last Modified time: 2020-03-29 12:07:36
 
 classdef Memory_Model
 
 	properties
 		% model information
 		name = 'Memory model'
-		% 
-		patterns
+		% data points, map X -> Y
+		X 	% data points to map from
+		Y 	% data points to map to = target
 		% model parameters
-		W 			% primal weights
-		b			% bias
+		W 	% primal weights
+		b	% bias
+		% error and jacobian
+		E 	% constraint term 1
+		J 	% constraint term 2
 	end
 
 	methods
@@ -21,6 +25,16 @@ classdef Memory_Model
 			
 		end
 
+
+		% show update equation of model
+		function show()
+			% work in progress
+
+			% f = "f = " ;
+			% for l = obj.num_lay:-1:1
+			% 	f = join( [f, num2str(obj.W)] ) ;
+			% end
+		end
 
 		% simulate model
 		function [path, varargout] = simulate(obj, start, varargin)
@@ -42,7 +56,7 @@ classdef Memory_Model
 				x_new = simulate_one_step(obj, x_old) ;
 				path(:, :, end+1) = x_new ;
 
-				if norm(x_new)>10*max(vecnorm(obj.patterns))
+				if norm(x_new)>10*max(vecnorm(obj.X))
 					break
 				end
 			end
@@ -55,11 +69,20 @@ classdef Memory_Model
 		end
 
 
-		% error of model E = X - W' * phi(X) - B
-		function E = error(obj, X)
+		% error of model E = Y - W' * phi(X) - B
+		function E = error(obj, X, varargin)
 			% X		states to compute error in
 
-			E = X - obj.simulate_one_step( X ) ;
+			if ( nargin<3 )
+				Y = X ;
+			else
+				Y = varargin{1} ;
+
+				% check correctness of input
+				assert( size(X, 2)==size(Y, 2),  'Numbr of patterns in X and Y do not match.' ) ;
+			end	
+
+			E = Y - obj.simulate_one_step( X ) ;
 		end
 
 
@@ -80,9 +103,9 @@ classdef Memory_Model
 
 				case { 'polynomial', 'poly', 'p' }
 					if ( N==1 )
-						int_k 	= obj.L_e * ( ( obj.patterns'*X + obj.theta(2) ).^(obj.theta(1)+1) ./ obj.patterns' ) / (obj.theta(1)+1) ;
-						k 		= obj.L_d * ( phiTphi( obj.patterns, X, obj.phi, obj.theta ) .* X ./ obj.patterns' ...
-											- phiTphi( obj.patterns, X, obj.phi, [obj.theta(1)+1, obj.theta(2)] ) ./ (obj.patterns.^2)' / (obj.theta(1)+1) ) ;
+						int_k 	= obj.L_e * ( ( obj.X'*X + obj.theta(2) ).^(obj.theta(1)+1) ./ obj.X' ) / (obj.theta(1)+1) ;
+						k 		= obj.L_d * ( phiTphi( obj.X, X, obj.phi, obj.theta ) .* X ./ obj.X' ...
+											- phiTphi( obj.X, X, obj.phi, [obj.theta(1)+1, obj.theta(2)] ) ./ (obj.X.^2)' / (obj.theta(1)+1) ) ;
 
 						E = 1/2 * ( vecnorm(X, 2, 1).^2 - 2/obj.p_reg * (int_k + k) - 2*obj.b'*X ) ;
 					else
@@ -92,8 +115,8 @@ classdef Memory_Model
 
 				case { 'gaussian', 'gauss', 'g' }
 					if ( N==1 )
-						int_k 	= obj.theta*sqrt(pi/2) * obj.L_e * erfc( (obj.patterns' - X) / (sqrt(2)*obj.theta) ) ;
-						k 		= - obj.L_d * phiTphi( obj.patterns, X, obj.phi, obj.theta ) ;
+						int_k 	= obj.theta*sqrt(pi/2) * obj.L_e * erfc( (obj.X' - X) / (sqrt(2)*obj.theta) ) ;
+						k 		= - obj.L_d * phiTphi( obj.X, X, obj.phi, obj.theta ) ;
 
 						E = ( 1/2 * vecnorm(X, 2, 1).^2 - 1/obj.p_reg * (int_k + k) - obj.b'*X ) ;
 					else
@@ -111,7 +134,7 @@ classdef Memory_Model
 					% derivative term
 					e_pot = zeros(1, P) ;
 					for p = 1:P
-						J = obj.model_jacobian( X(:, p) ) ;
+						J = obj.jacobian( X(:, p) ) ;
 						e_pot(p) = trace( J'*J ) ;
 					end					
 
@@ -122,12 +145,12 @@ classdef Memory_Model
 			if (nargout>2)
 				eig_jac = zeros( size(X) );
 				for p = 1:size(X, 2)
-					eig_jac(:, p) = eig( -obj.model_jacobian( X(:, p) ) ) ;
+					eig_jac(:, p) = eig( -obj.jacobian( X(:, p) ) ) ;
 				end
 			end			
 
 			if (nargout>1)
-				varargout{1} = vecnorm( obj.model_error( X ), 2, 1 ) ;
+				varargout{1} = vecnorm( obj.error( X ), 2, 1 ) ;
 				varargout{2} = eig_jac ;
 			end
 		end
@@ -139,27 +162,29 @@ classdef Memory_Model
 			% varargin		(1) start positions to simulate model from
 
 		    % can only visualize 1D and 2D data
-		    assert( size(obj.patterns, 1)<3 , 'Cannot visualize more than 2 dimensions.' ) ;
+		    assert( size(obj.X, 1)<3 , 'Cannot visualize more than 2 dimensions.' ) ;
 
 		    % extract useful information
-		    dim_data = size(obj.patterns, 1) ;
-		    num_data = size(obj.patterns, 2) ;
+		    dim_data = size(obj.X, 1) ;
+		    num_data = size(obj.X, 2) ;
 
 		    % if data is one dimensional, visualize update function
 		    if (dim_data==1)
 		        
 		        figure('position', [300, 500, 400, 300])
 		        
-		        x = -1+1.5*min(obj.patterns, [], 'all') : ...
-			    	(max(obj.patterns, [], 'all')-min(obj.patterns, [], 'all'))/20/num_data : ...
-			  		1+1.5*max(obj.patterns, [], 'all') ;
+		        x = -1+1.5*min(obj.X, [], 'all') : ...
+			    	(max(obj.X, [], 'all')-min(obj.X, [], 'all'))/20/num_data : ...
+			  		1+1.5*max(obj.X, [], 'all') ;
+
+			  	% x = -4:0.1:4 ;
 
 	            box on
 	            hold on
 	            yyaxis left
 	            
 	            % patterns to memorize
-				l_patterns = plot( obj.patterns, obj.patterns, 'rx', 'linewidth', 2 ) ;
+				l_patterns = plot( obj.X, obj.X, 'rx', 'linewidth', 2 ) ;
 
 	            % update function f(x_k)
 	            f = obj.simulate_one_step(x) ;
@@ -198,6 +223,8 @@ classdef Memory_Model
 				ax.XAxisLocation = 'origin';
 				% ax.YAxisLocation = 'origin';
 		        title( obj.name )
+		        % xlim([-4, 4])
+		        % ylim([-4, 4])
 		        % title('Polynomial kernel (d=5, t=1)')
 		        % legend( [l_patterns, l_update, l_energy, l_identity ], {'Pattern', 'Update equation', 'Energy', 'Identity map'} , 'location', 'northwest')
 
@@ -210,7 +237,7 @@ classdef Memory_Model
 	            hold on
 
 	            % patterns to memorize
-				l_patterns = plot(obj.patterns(1, :), obj.patterns(2, :), 'rx', 'linewidth', 2) ;
+				l_patterns = plot(obj.X(1, :), obj.X(2, :), 'rx', 'linewidth', 2) ;
 
 				% energy surface and nullclines
 				wdw = 10 ; % window

@@ -1,7 +1,7 @@
 % @Author: OctaveOliviers
 % @Date:   2020-03-15 16:25:15
 % @Last Modified by:   OctaveOliviers
-% @Last Modified time: 2020-03-28 15:18:01
+% @Last Modified time: 2020-03-29 12:30:29
 
 classdef Memory_Model_Shallow_Dual < Memory_Model_Shallow
 	
@@ -28,13 +28,14 @@ classdef Memory_Model_Shallow_Dual < Memory_Model_Shallow
 				Y = varargin{1} ;
 
 				% check correctness of input
-				assert( size(X, 2)==size(Y, 2),  'Numbr of patterns in X and Y do not match.' ) ;
+				assert( size(X, 2)==size(Y, 2),  'Number of patterns in X and Y do not match.' ) ;
 			end	
 
 			% extract useful parameters
-			[Nx, P]			= size(X) ;
-			[Ny, ~]			= size(Y) ;
-			obj.patterns 	= Y ;
+			[Nx, P]	= size(X) ;
+			[Ny, ~]	= size(Y) ;
+			obj.X 	= X ;
+			obj.Y 	= Y ;
 
 			% build kernel terms
 			pTp = phiTphi(X, X, obj.phi, obj.theta) ;
@@ -72,40 +73,59 @@ classdef Memory_Model_Shallow_Dual < Memory_Model_Shallow
 				obj.W = 1/obj.p_reg * ( P*obj.L_e' + F*obj.L_d' ) ;
 			end
 
+			% store error and jacobian
+			obj.E = obj.error( X, Y ) ;
+			obj.J = obj.jacobian( X ) ;
+
 		    disp("model trained in dual")
 		end
 
 
 		% compute value of Lagrangian
-		function L = lagrangian(obj)
-			% error term
-			E = obj.error( obj.patterns ) ;
-			% derivative term
-			J = obj.model_jacobian( obj.patterns ) ;
-			% regularization term
-			PTP = phiTphi( obj.patterns, obj.patterns, obj.phi, obj.theta ) ;
-			PTF = phiTjac( obj.patterns, obj.patterns, obj.phi, obj.theta ) ;
-			FTP = jacTphi( obj.patterns, obj.patterns, obj.phi, obj.theta ) ;
-			FTF = jacTjac( obj.patterns, obj.patterns, obj.phi, obj.theta ) ;
+		function L = lagrangian(obj, varargin)
+
+			% compute norm of weights
+			PTP = phiTphi( obj.X, obj.X, obj.phi, obj.theta ) ;
+			PTF = phiTjac( obj.X, obj.X, obj.phi, obj.theta ) ;
+			FTP = jacTphi( obj.X, obj.X, obj.phi, obj.theta ) ;
+			FTF = jacTjac( obj.X, obj.X, obj.phi, obj.theta ) ;
 			WTW = 1/obj.p_reg * ( obj.L_e*PTP*obj.L_e' + obj.L_e*PTF*obj.L_d' ...
 								+ obj.L_d*FTP*obj.L_e' + obj.L_d*FTF*obj.L_d' ) ;
 
-			L = obj.p_err/2 * trace(E'*E) + obj.p_drv/2 * trace(J'*J) + obj.p_reg/2 * trace(WTW) ;
+			% compute lagrangian of model
+			if ( nargin < 2 )
+				L = obj.p_err/2 * trace( obj.E' * obj.E ) + ...	% error term
+					obj.p_drv/2 * trace( obj.J' * obj.J ) + ...	% derivative term
+					obj.p_reg/2 * trace( WTW ) ;				% regularization term
+
+			% evaluate lagrangian with new parameters
+			else
+				X = varargin{1} ;
+				Y = varargin{2} ;
+				
+				E = Y - obj.simulate_one_step( X ) ; 
+				J = obj.jacobian( X ) ;
+
+				L = obj.p_err/2 * trace( E' * E ) + ...	% error term
+					obj.p_drv/2 * trace( J' * J ) + ...	% derivative term
+					obj.p_reg/2 * trace( WTW ) ;		% regularization term
+			end
 		end
 
 
-		% error of model J = - W' * J_phi(X)
-		function J = model_jacobian(obj, X)
+		% error of model on derivative J = - W' * J_phi(X)
+		function J = jacobian(obj, X)
 			% X 	states to compute Jacobian in as columns
 
 			% extract useful parameters
-			[N, P] = size(X) ;
+			[Nx, P] = size(X) ;
+			[Ny, ~] = size(obj.Y) ;
 
-			J = zeros( N, N*P ) ;
+			J = zeros( Ny, Nx*P ) ;
 			for p = 1:size(X, 2)
-				PTf = phiTjac( obj.patterns, X(:, p), obj.phi, obj.theta ) ;
-				FTf = jacTjac( obj.patterns, X(:, p), obj.phi, obj.theta ) ;
-				J(:, (p-1)*N+1:p*N) = - 1/obj.p_reg * ( obj.L_e*PTf + obj.L_d*FTf ) ;
+				PTf = phiTjac( obj.X, X(:, p), obj.phi, obj.theta ) ;
+				FTf = jacTjac( obj.X, X(:, p), obj.phi, obj.theta ) ;
+				J(:, (p-1)*Nx+1:p*Nx) = - 1/obj.p_reg * ( obj.L_e*PTf + obj.L_d*FTf ) ;
 			end
 		end
 
@@ -114,8 +134,8 @@ classdef Memory_Model_Shallow_Dual < Memory_Model_Shallow
 		function f = simulate_one_step(obj, x)
 			% x		matrix with start positions to simulate from as columns
 
-			PTp = phiTphi( obj.patterns, x, obj.phi, obj.theta ) ;
-			FTp = jacTphi( obj.patterns, x, obj.phi, obj.theta ) ;
+			PTp = phiTphi( obj.X, x, obj.phi, obj.theta ) ;
+			FTp = jacTphi( obj.X, x, obj.phi, obj.theta ) ;
 
 			f   = (obj.L_e*PTp + obj.L_d*FTp)/obj.p_reg + obj.b ;
 		end

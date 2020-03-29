@@ -1,14 +1,12 @@
 % @Author: OctaveOliviers
 % @Date:   2020-03-19 16:58:27
 % @Last Modified by:   OctaveOliviers
-% @Last Modified time: 2020-03-20 09:08:40
+% @Last Modified time: 2020-03-29 11:30:20
 
 
 classdef Hopfield_Network < Memory_Model
 
 	properties
-		% model information
-		name = 'Hopfield Network' ;	
 		% model architecture
 		phi		% activation function as string
 	end
@@ -20,6 +18,8 @@ classdef Hopfield_Network < Memory_Model
 			obj@Memory_Model() ;
 			% architecture
 			obj.phi = phi ;		% string
+			% model information
+			obj.name 	= "Hopfield Network" ;
 		end
 
 
@@ -28,8 +28,8 @@ classdef Hopfield_Network < Memory_Model
 			% X 		patterns to memorize in columns
 			
 			% extract useful parameters
-			[N, ~]			= size(X) ;
-			obj.patterns 	= X ;
+			[N, ~]	= size(X) ;
+			obj.X 	= X ;
 
 			% center patterns around origin
 			obj.b 	= mean( X, 2 ) ;

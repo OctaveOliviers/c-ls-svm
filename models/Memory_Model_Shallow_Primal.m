@@ -1,7 +1,7 @@
 % @Author: OctaveOliviers
 % @Date:   2020-03-15 16:25:40
 % @Last Modified by:   OctaveOliviers
-% @Last Modified time: 2020-03-28 15:16:58
+% @Last Modified time: 2020-03-29 12:34:11
 
 classdef Memory_Model_Shallow_Primal < Memory_Model_Shallow
 	
@@ -32,9 +32,10 @@ classdef Memory_Model_Shallow_Primal < Memory_Model_Shallow
 			end		
 
 			% extract useful parameters
-			[Nx, P]			= size(X) ;
-			[Ny, ~]			= size(Y) ;
-			obj.patterns 	= Y ;
+			[Nx, P]	= size(X) ;
+			[Ny, ~]	= size(Y) ;
+			obj.X 	= X ;
+			obj.Y 	= Y ;
 
 			% feature map in each data point
 			f = feval(obj.phi, X) ;
@@ -66,25 +67,40 @@ classdef Memory_Model_Shallow_Primal < Memory_Model_Shallow
 			obj.L_e	= obj.p_err * ( Y - obj.W' * f - obj.b ) ;
 			obj.L_d	= obj.p_drv * ( - obj.W' * F ) ;
 
+			% store error and jacobian
+			obj.E = obj.error( X, Y ) ;
+			obj.J = obj.jacobian( X ) ;
+
 		    disp("model trained in primal")
 		end
 
 
 		% compute value of Lagrangian
-		function L = lagrangian(obj)
-			% error term
-			E = obj.error( obj.patterns ) ;
-			% derivative term
-			J = obj.model_jacobian( obj.patterns ) ;
-			% regularization term
-			W = obj.W ;
+		function L = lagrangian(obj, varargin)
+			
+			% compute lagrangian of model
+			if ( nargin < 2 )
+				L = obj.p_err/2 * trace( obj.E' * obj.E ) + ...	% error term
+					obj.p_drv/2 * trace( obj.J' * obj.J ) + ...	% derivative term
+					obj.p_reg/2 * trace( obj.W' * obj.W ) ;		% regularization term
 
-			L = obj.p_err/2 ;
+			% evaluate lagrangian with new parameters
+			else
+				X = varargin{1} ;
+				Y = varargin{2} ;
+				
+				E = Y - obj.simulate_one_step( X ) ; 
+				J = obj.jacobian( X ) ;
+
+				L = obj.p_err/2 * trace( E' * E ) + ...	% error term
+					obj.p_drv/2 * trace( J' * J ) + ...	% derivative term
+					obj.p_reg/2 * trace( obj.W' * obj.W ) ;		% regularization term
+			end
 		end
 
 
 		% error of model J = - W' * J_phi(X)
-		function J = model_jacobian(obj, X)
+		function J = jacobian(obj, X)
 			% X 	states to compute Jacobian in as columns
 
 			F = jac( X, obj.phi, obj.theta ) ;

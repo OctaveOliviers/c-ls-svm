@@ -1,7 +1,7 @@
 % @Author: OctaveOliviers
 % @Date:   2020-03-05 10:01:57
 % @Last Modified by:   OctaveOliviers
-% @Last Modified time: 2020-03-20 09:14:23
+% @Last Modified time: 2020-03-29 11:19:36
 
 classdef Memory_Model_Action < Memory_Model
 	
@@ -36,7 +36,7 @@ classdef Memory_Model_Action < Memory_Model
 					'Movement should have same number of steps as the network has number of layers.' ) ;
 
 			% store movements to memorize
-			obj.patterns = movements ;
+			obj.X 	= movements ;
 
 			% train each model
 			for l = 1:obj.num_lay
@@ -76,11 +76,11 @@ classdef Memory_Model_Action < Memory_Model
 		function visualize(obj, varargin)
 
 		    % can only visualize 1D and 2D data
-		    assert( size(obj.patterns, 1)<3 , 'Cannot visualize more than 2 dimensions.' ) ;
+		    assert( size(obj.X, 1)<3 , 'Cannot visualize more than 2 dimensions.' ) ;
 
 		    % % extract useful information
-		    dim_data = size(obj.models{1}.patterns, 1) ;
-		    num_data = size(obj.models{1}.patterns, 2) ;
+		    dim_data = size(obj.models{1}.X, 1) ;
+		    num_data = size(obj.models{1}.X, 2) ;
 		    len_data = size(obj.models, 1) ;
 
 		    % if data is one dimensional, visualize update function
@@ -90,9 +90,9 @@ classdef Memory_Model_Action < Memory_Model
 			    for l = 1:obj.num_lay
 
 
-			    	x = 1.5*min(obj.patterns(:, :, l:l+1), [], 'all') : ...
-			    		(max(obj.patterns(:, :, l:l+1), [], 'all')-min(obj.patterns(:, :, l:l+1), [], 'all'))/10/num_data : ...
-			  			1.5*max(obj.patterns(:, :, l:l+1), [], 'all') ;
+			    	x = 1.5*min(obj.X(:, :, l:l+1), [], 'all') : ...
+			    		(max(obj.X(:, :, l:l+1), [], 'all')-min(obj.X(:, :, l:l+1), [], 'all'))/10/num_data : ...
+			  			1.5*max(obj.X(:, :, l:l+1), [], 'all') ;
 
 			    	subplot(1, obj.num_lay, l)
 		            box on
@@ -119,7 +119,7 @@ classdef Memory_Model_Action < Memory_Model
 					end
 
 		            % plot mouvement to memorize
-		            plot(obj.patterns(:, :, l), obj.patterns(:, :, l+1), 'rx')
+		            plot(obj.X(:, :, l), obj.X(:, :, l+1), 'rx')
 		            
 		            hold off
 		            % plot layout
@@ -145,7 +145,7 @@ classdef Memory_Model_Action < Memory_Model
 
 	            % movements to memorize
 	            for a = 1:num_data
-					plot(squeeze(obj.patterns(1, a, :)), squeeze(obj.patterns(2, a, :)), 'linewidth', 1)
+					plot(squeeze(obj.X(1, a, :)), squeeze(obj.X(2, a, :)), 'linewidth', 1)
 	            end
 
 				% simulate model from initial conditions in varargin
