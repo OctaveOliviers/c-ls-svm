@@ -13,10 +13,10 @@ addpath( './support/' )
 warning( 'Results are not correct.' )
 
 % parameters of patterns
-dim_patterns 	= 1 ;
-num_patterns 	= 2 ;
+dim_patterns    = 1 ;
+num_patterns    = 2 ;
 %
-num_test		= 5 ;
+num_test        = 5 ;
 
 % initialize random number generator
 rng(10) ;

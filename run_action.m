@@ -29,12 +29,12 @@ movements(:, 1, :) = z+[1; -1.5] ; movements(:, 2, :) = -z+[-1.5; -1] ; movement
 formulation = 'dual' ;
 feature_map = 'gaussian' ;
 parameter   = 2 ;
-num_layers	= len_movements-1 ;
+num_layers  = len_movements-1 ;
 
 % build model to memorize patterns
-p_err  = 1e4 ;	% importance of error
-p_reg  = 1e1 ;	% importance of regularization
-p_drv  = 1e3 ;	% importance of minimizing derivative
+p_err  = 1e4 ;  % importance of error
+p_reg  = 1e1 ;  % importance of regularization
+p_drv  = 1e3 ;  % importance of minimizing derivative
 
 % build model
 model = Memory_Model_Action(num_layers, formulation, feature_map, parameter, p_err, p_drv, p_reg) ;

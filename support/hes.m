@@ -1,7 +1,7 @@
 % @Author: OctaveOliviers
 % @Date:   2020-03-15 14:34:35
 % @Last Modified by:   OctaveOliviers
-% @Last Modified time: 2020-03-15 14:50:53
+% @Last Modified time: 2020-03-29 16:50:45
 
 % compute Hessian of each component of the feature map in each pattern
 %	input
@@ -24,7 +24,9 @@ function H = hes( patterns, type, varargin )
         case 'tanh'
             H = zeros( N, N*P, N ) ;
             for p=1:P
-                J(:, (p-1)*N+1:p*N) = diag( 1./ cosh( patterns(:, p) ).^2) ; 
+                for d = 1:N
+                    H(d, d+(p-1)*N, d) = -2 * tanh( patterns(d, p) ) * ( 1 - tanh( patterns(d, p) )^2 ); 
+                end
             end
 
         case 'sign'

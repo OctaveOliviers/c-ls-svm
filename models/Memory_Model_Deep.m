@@ -1,7 +1,7 @@
 % @Author: OctaveOliviers
 % @Date:   2020-03-05 19:26:18
 % @Last Modified by:   OctaveOliviers
-% @Last Modified time: 2020-03-29 11:18:07
+% @Last Modified time: 2020-03-29 14:14:08
 
 classdef Memory_Model_Deep < Memory_Model
 	
@@ -47,8 +47,8 @@ classdef Memory_Model_Deep < Memory_Model
 				obj.num_lay		= varargin{1} ;
 				obj.models		= cell(varargin{1}, 1) ;
 				obj.max_iter	= 20 ;
-				obj.alpha		= 0.01 ;
-				% shallow model for each step of the action
+				obj.alpha		= 1 ;
+				% shallow model for each layer
 				for l = 1:obj.num_lay
 					obj.models{l} = build_model(1, varargin{2}{l}, varargin{3}{l}, varargin{4}{l}, varargin{5}, varargin{6}, varargin{7}) ;
 				end
@@ -144,10 +144,10 @@ classdef Memory_Model_Deep < Memory_Model
 
 
 		% compute value of Lagrangian
-		function L = lagrangian( obj )
+		function L = lagrangian( obj, varargin )
 			L = 0 ;
 			for l = 1:obj.num_lay
-				L = L + obj.models{ l }.lagrangian() ;
+				L = L + obj.models{ l }.lagrangian( varargin{:} ) ;
 			end
 		end
 

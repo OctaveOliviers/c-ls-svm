@@ -12,16 +12,16 @@
 
 % parameters to play with
 % patterns
-num_protos		= 3 ;		% number of prototypes to select for each label
-% num_patterns    = 10 ;		% number of patterns to store in state space
+num_protos      = 3 ;       % number of prototypes to select for each label
+% num_patterns    = 10 ;        % number of patterns to store in state space
 % model
-formulation 	= 'dual' ; 
-feature_map 	= 'g' ; 
-parameter 		= 1 ;
+formulation     = 'dual' ; 
+feature_map     = 'g' ; 
+parameter       = 1 ;
 num_layers      = 1 ;
 % testing
 tolerance       = 1e-3 ;
-num_to_avg_over	= 1 ;
+num_to_avg_over = 1 ;
 
 
 % % LOAD dataset
@@ -69,10 +69,10 @@ patterns = select_means( train_img, train_lbl, num_protos, 'rbf', 0.1 ) ;
 % % visualize chosen prototypes
 % figure('position', [100, 100, 1000, num_protos*100])
 % for i = 1:size(patterns, 3)
-% 	for j = 1:num_protos
-% 		subplot( num_protos, size(patterns, 3), (j-1)*size(patterns, 3) + i )
-% 		plot_image( squeeze(patterns(:, j, i)), size_image, " " )
-% 	end
+%   for j = 1:num_protos
+%       subplot( num_protos, size(patterns, 3), (j-1)*size(patterns, 3) + i )
+%       plot_image( squeeze(patterns(:, j, i)), size_image, " " )
+%   end
 % end
 % suptitle( num2str(sig) )
 
@@ -82,9 +82,9 @@ disp("patterns selected")
 
 
 % % Build model to memorize patterns
-p_err  = 1e4 ;	% importance of error
-p_reg  = 1e1 ;	% importance of regularization
-p_drv  = 1e3 ;	% importance of minimizing derivative
+p_err  = 1e4 ;  % importance of error
+p_reg  = 1e1 ;  % importance of regularization
+p_drv  = 1e3 ;  % importance of minimizing derivative
 
 
 model = build_model( num_layers, formulation, feature_map, parameter, p_err, p_drv, p_reg ) ;
