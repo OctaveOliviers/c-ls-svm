@@ -1,7 +1,7 @@
 % Created  by OctaveOliviers
 %          on 2020-03-29 18:46:54
 %
-% Modified on 2020-03-29 19:32:48
+% Modified on 2020-03-30 18:48:51
 
 classdef Memory_Model
 
@@ -14,7 +14,8 @@ classdef Memory_Model
         % model parameters
         W   % primal weights
         b   % bias
-        % error and jacobian
+        % value of lagrangian, error and jacobian
+        L   % Lagrangian
         E   % constraint term 1
         J   % constraint term 2
     end

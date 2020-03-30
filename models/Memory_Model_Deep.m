@@ -1,7 +1,7 @@
 % Created  by OctaveOliviers
 %          on 2020-03-29 19:28:02
 %
-% Modified on 2020-03-29 19:32:59
+% Modified on 2020-03-30 20:37:00
 
 classdef Memory_Model_Deep < Memory_Model
     
@@ -10,6 +10,7 @@ classdef Memory_Model_Deep < Memory_Model
         num_lay     % number of layers
         max_iter    % maximum number of iterations during training
         alpha       % learning rate for gradient descent in hidden states
+        max_back_track = 10 ; % maximum number of times to backtrack
     end
 
     methods
@@ -28,8 +29,8 @@ classdef Memory_Model_Deep < Memory_Model
                 % subclass specific variables
                 obj.num_lay     = length(varargin{1}) ;
                 obj.models      = varargin{1} ;
-                obj.max_iter    = 20 ;
-                obj.alpha       = 0.01 ;
+                obj.max_iter    = varargin{end} ;
+                obj.alpha       = varargin{end-1} ;
                 obj.X           = varargin{1}{1}.X ;
                 obj.name        = join([ num2str(obj.num_lay), '-layered network (']) ;
                 for l = 1:obj.num_lay
@@ -46,8 +47,8 @@ classdef Memory_Model_Deep < Memory_Model
                 % subclass specific variables
                 obj.num_lay     = varargin{1} ;
                 obj.models      = cell(varargin{1}, 1) ;
-                obj.max_iter    = 20 ;
-                obj.alpha       = 1 ;
+                obj.max_iter    = varargin{end} ;
+                obj.alpha       = varargin{end-1} ;
                 % shallow model for each layer
                 for l = 1:obj.num_lay
                     obj.models{l} = build_model(1, varargin{2}{l}, varargin{3}{l}, varargin{4}{l}, varargin{5}, varargin{6}, varargin{7}) ;
@@ -59,61 +60,100 @@ classdef Memory_Model_Deep < Memory_Model
         % train model to implicitely find good hidden states with target propagation
         function obj = train_implicit( obj, X, varargin )
             % X         patterns to memorize
-            % varargin  contains Y to map patterns X to (for stacked architectures)
             
             % extract useful parameters
-            [N, P]          = size(X) ;
-            obj.X           = repmat( X, 1, 1, obj.num_lay+1 ) ;
+            [N, P] = size(X) ;
+            obj.X  = X ;
 
+            % initialize hidden representations of patterns
+            H      = repmat( X, 1, 1, obj.num_lay+1 ) ;
+            step   = zeros(size(H)) ;
+            % initialize network by training each layer
+            for l = 1:obj.num_lay
+                obj.models{ l } = obj.models{ l }.train( H(:, :, l), H(:, :, l+1) ) ;
+            end
+
+            % train the network
             for i = 1:obj.max_iter
-                % hidden representations of patterns
-                H = obj.X ;
+                
+                % store current error on patterns
+                obj.L = obj.lagrangian() ;
+                obj.L = obj.error(X) ;
 
-                % train each layer
-                for l = 1:obj.num_lay
-                    obj.models{ l } = obj.models{ l }.train( H(:, :, l), H(:, :, l+1) ) ;
-                end
-
-                % evaluate objective value
-                L = obj.lagrangian()
-
-                % update hidden layers
+                % update hidden representations
                 for l = obj.num_lay-1:-1:1
 
-                    assert( strcmp(obj.models{l}.phi, 'sign'), 'deep target only for sign(x) yet' )
+                    switch obj.models{l+1}.space
 
-                    switch obj.models{ l }.space
                         case {'primal', 'p'}
-                            L_e_l   = obj.models{ l }.L_e ; 
-                            % F_lp1 = jac( H(:, :, l), obj.phi{l+1}, obj.theta{l+1} ) ;
-                            % W_lp1 = obj.models{ l+1 }.W ;
-                            % L_e_lp1   = obj.models{ l+1 }.L_e ;
-                            % L_d_lp1   = obj.models{ l+1 }.L_d ;
 
-                            % grad  = L_e_l - F_lp1'*W_lp1*L_e_lp1 ;
-                            % for p = 1:P
-                            %   A = L_d_lp1(:, (p-1)*N+1:p*N)' * W_lp1 ;
+                            % extract useful parameters
+                            E_l     = obj.models{l}.E ;
+                            E_lp1   = obj.models{l+1}.E ;
+                            J_lp1   = obj.models{l+1}.J ;
+                            W_lp1   = obj.models{l+1}.W ;
 
-                            %   H = hess() ;
-                            % end
+                            % derivative at current level
+                            dL_l    = obj.models{l}.p_err * E_l ;
 
-                            grad = L_e_l ;
-                            r = max(vecnorm(grad))
+                            Hes     = hes( H(:, :, l+1), obj.models{l+1}.phi ) ;
 
-                            H(:, :, l+1) = H(:, :, l+1) - obj.alpha * grad ;
+                            % derivative of error wrt each hidden pattern
+                            dE_lp1  = zeros(N, P) ;
+                            for p = 1:P
+                                dE_lp1(:, p) = J_lp1(:, 1+(p-1)*N:p*N)' * E_lp1(:, p) ;
+                            end
+                            % derivative of jacobian wrt each hidden pattern
+                            dJ_lp1  = zeros(N, P) ;
+                            for p = 1:P
+                                for n = 1:N
+                                    dJ_lp1(n, p) = trace( squeeze(Hes(:, n+(p-1)*N, :)) * W_lp1 * J_lp1(:, 1+(p-1)*N:p*N) ) ;
+                                end
+                            end
+                            % derivative at next level
+                            dL_lp1   = obj.models{l+1}.p_err * dE_lp1 + obj.models{l}.p_drv * dJ_lp1 ;
 
+                            % store update of hidden states
+                            step(:, :, l+1) = dL_l + dL_lp1 ;
+                            
                         case {'dual', 'd'}
-                            warning( 'target prop has not yet been implemented for dual formulation' ) ;
+                            warning( 'target prop is not yet implemented for dual formulation' ) ;
+                    end
+                end
+
+                % backtracking
+                b = obj.alpha ;
+                for k = 1:obj.max_back_track
+                    % store canditate new hidden states
+                    H_c = H - b * step ;
+
+                    % train each layer
+                    for l = 1:obj.num_lay
+                        obj.models{ l } = obj.models{ l }.train( H_c(:, :, l), H_c(:, :, l+1) ) ;
                     end
 
+                    %if ( obj.lagrangian() > obj.L )
+                    if ( norm(obj.error(X)) > norm(obj.E) )
+                        b = b/2 ;
+                    else
+                        break
+                    end
                 end
-                obj.X = H ;
-
-
-                % check for convergence
-                if ( r < 1e-5 )
+                b
+                if ( k==obj.max_back_track )
+                    % did not find better hidden states
+                    for l = 1:obj.num_lay
+                        obj.models{ l } = obj.models{ l }.train( H(:, :, l), H(:, :, l+1) ) ;
+                    end
+                    % stop training
                     break
+                else
+                    disp( "backtracking with b = " + num2str(b) )
+                    H = H_c ;
                 end
+
+                obj.visualize() ;
+                pause(2)
 
             end
 

@@ -1,7 +1,7 @@
 % Created  by OctaveOliviers
 %          on 2020-03-29 19:04:04
 %
-% Modified on 2020-03-29 21:15:32
+% Modified on 2020-03-30 19:53:03
 
 classdef Memory_Model_Shallow_Primal < Memory_Model_Shallow
     
@@ -67,11 +67,12 @@ classdef Memory_Model_Shallow_Primal < Memory_Model_Shallow
             obj.L_e = obj.p_err * ( Y - obj.W' * f - obj.b ) ;
             obj.L_d = obj.p_drv * ( - obj.W' * F ) ;
 
-            % store error and jacobian
+            % store error, jacobian and lagrangian
             obj.E = obj.error( X, Y ) ;
             obj.J = obj.jacobian( X ) ;
+            obj.L = obj.lagrangian( ) ;
 
-            disp("model trained in primal")
+            % disp("model trained in primal")
         end
 
 
@@ -89,7 +90,7 @@ classdef Memory_Model_Shallow_Primal < Memory_Model_Shallow
                 X = varargin{1} ;
                 Y = varargin{2} ;
                 
-                E = Y - obj.simulate_one_step( X ) ; 
+                E = obj.error( X, Y ) ; 
                 J = obj.jacobian( X ) ;
 
                 L = obj.p_err/2 * trace( E' * E ) + ... % error term

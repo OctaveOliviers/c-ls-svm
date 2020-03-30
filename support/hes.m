@@ -1,7 +1,7 @@
 % Created  by OctaveOliviers
 %          on 2020-03-29 16:54:38
 %
-% Modified on 2020-03-29 19:33:53
+% Modified on 2020-03-30 16:36:23
 
 % compute Hessian of each component of the feature map in each pattern
 %   input

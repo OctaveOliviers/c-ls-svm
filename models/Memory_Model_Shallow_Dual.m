@@ -1,7 +1,7 @@
 % Created  by OctaveOliviers
 %          on 2020-03-29 19:05:54
 %
-% Modified on 2020-03-29 19:33:09
+% Modified on 2020-03-30 19:53:05
 
 classdef Memory_Model_Shallow_Dual < Memory_Model_Shallow
     
@@ -73,11 +73,12 @@ classdef Memory_Model_Shallow_Dual < Memory_Model_Shallow
                 obj.W = 1/obj.p_reg * ( P*obj.L_e' + F*obj.L_d' ) ;
             end
 
-            % store error and jacobian
+            % store error, jacobian and lagrangian
             obj.E = obj.error( X, Y ) ;
             obj.J = obj.jacobian( X ) ;
+            obj.L = obj.lagrangian( ) ;
 
-            disp("model trained in dual")
+            % disp("model trained in dual")
         end
 
 
@@ -103,7 +104,7 @@ classdef Memory_Model_Shallow_Dual < Memory_Model_Shallow
                 X = varargin{1} ;
                 Y = varargin{2} ;
                 
-                E = Y - obj.simulate_one_step( X ) ; 
+                E = obj.error( X, Y ) ; 
                 J = obj.jacobian( X ) ;
 
                 L = obj.p_err/2 * trace( E' * E ) + ... % error term
