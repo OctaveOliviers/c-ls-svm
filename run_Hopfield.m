@@ -1,7 +1,7 @@
-% @Author: OctaveOliviers
-% @Date:   2020-03-20 08:25:48
-% @Last Modified by:   OctaveOliviers
-% @Last Modified time: 2020-03-20 09:09:26
+% Created  by OctaveOliviers
+%          on 2020-03-29 17:04:27
+%
+% Modified on 2020-03-29 19:35:47
 
 clear all
 clc
@@ -13,10 +13,10 @@ addpath( './support/' )
 warning( 'Results are not correct.' )
 
 % parameters of patterns
-dim_patterns 	= 1 ;
-num_patterns 	= 2 ;
+dim_patterns    = 1 ;
+num_patterns    = 2 ;
 %
-num_test		= 5 ;
+num_test        = 5 ;
 
 % initialize random number generator
 rng(10) ;

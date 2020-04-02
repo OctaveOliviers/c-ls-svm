@@ -1,3 +1,8 @@
+% Created  by OctaveOliviers
+%          on 2020-03-16 22:59:46
+%
+% Modified on 2020-03-29 19:35:02
+
 % readMNIST by Siddharth Hegde
 %
 % Description:

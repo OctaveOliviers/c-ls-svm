@@ -1,7 +1,7 @@
-% @Author: OctaveOliviers
-% @Date:   2020-02-22 15:30:10
-% @Last Modified by:   OctaveOliviers
-% @Last Modified time: 2020-03-15 14:49:32
+% Created  by OctaveOliviers
+%          on 2020-03-29 16:54:35
+%
+% Modified on 2020-03-29 19:34:01
 
 % compute Jacobian matrix in each pattern as long matrix
 %   input
@@ -24,7 +24,7 @@ function J = jac( patterns, type, varargin )
         case 'tanh'
             J = zeros( N, N*P ) ;
             for p=1:P
-                J(:, (p-1)*N+1:p*N) = diag( 1./ cosh( patterns(:, p) ).^2) ; 
+                J(:, (p-1)*N+1:p*N) = diag( 1 ./ cosh( patterns(:, p) ).^2) ; 
             end
 
         case 'sign'

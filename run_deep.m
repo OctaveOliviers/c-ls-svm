@@ -1,7 +1,7 @@
-% @Author: OctaveOliviers
-% @Date:   2020-03-13 18:40:25
-% @Last Modified by:   OctaveOliviers
-% @Last Modified time: 2020-03-16 18:22:09
+% Created  by OctaveOliviers
+%          on 2020-03-29 17:04:31
+%
+% Modified on 2020-03-29 19:35:37
 
 clear all
 clc
@@ -11,18 +11,18 @@ addpath( './models/' )
 addpath( './support/' )
 
 % parameters of patterns
-dim_patterns 	= 2 ;
-num_patterns 	= 4 ;
+dim_patterns    = 1 ;
+num_patterns    = 4 ;
 
 % parameters of model
-formulation		= {	'primal', 	'primal', 	'primal'} ;
-feature_map 	= {	'sign',		'sign', 	'sign'} ;
-parameter   	= {	0,			0,			0} ; ;
-num_layers  	= 3 ;
+formulation     = { 'primal',   'primal',   'primal'} ;
+feature_map     = { 'sign',     'sign',     'sign'} ;
+parameter       = { 0,          0,          0} ; ;
+num_layers      = 3 ;
 % hyper-parameters
-p_err  			= 1e4 ;	% importance of error
-p_reg  			= 1e1 ;	% importance of regularization
-p_drv  			= 1e3 ;	% importance of minimizing derivative
+p_err           = 1e4 ; % importance of error
+p_reg           = 1e1 ; % importance of regularization
+p_drv           = 1e3 ; % importance of minimizing derivative
 
 % initialize random number generator
 rng(10) ;
