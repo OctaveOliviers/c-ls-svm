@@ -1,7 +1,7 @@
 % Created  by OctaveOliviers
 %          on 2020-03-29 18:46:54
 %
-% Modified on 2020-03-30 18:48:51
+% Modified on 2020-04-07 21:25:29
 
 classdef Memory_Model
 
@@ -89,6 +89,18 @@ classdef Memory_Model
 
         % compute energy in state X
         function [E, varargout] = energy(obj, X)
+            
+            % extract usefull information
+            [N, P] = size(X) ;
+
+            E = zeros(1, P) ;
+            for p = 1:P
+                E(p) = -0.5 * phiTphi( X(:, p) , obj.simulate_one_step(X(:, p)), obj.phi, obj.theta ) ;
+            end
+        end        
+
+        % compute energy in state X
+        function [E, varargout] = energy2(obj, X)
             % X     states to compute energy, error and eigenvalues for in columns
 
             % extract usefull information
@@ -174,11 +186,11 @@ classdef Memory_Model
                 
                 figure('position', [300, 500, 400, 300])
                 
-                x = -1+1.5*min(obj.X, [], 'all') : ...
-                    (max(obj.X, [], 'all')-min(obj.X, [], 'all'))/20/num_data : ...
-                    1+1.5*max(obj.X, [], 'all') ;
+                % x = -1+1.5*min(obj.X, [], 'all') : ...
+                %     (max(obj.X, [], 'all')-min(obj.X, [], 'all'))/20/num_data : ...
+                %     1+1.5*max(obj.X, [], 'all') ;
 
-                % x = -4:0.1:4 ;
+                x = -6:0.1:6 ;
 
                 box on
                 hold on
@@ -199,22 +211,23 @@ classdef Memory_Model
                     P = zeros([size(p, 1), size(p, 2), 2*size(p, 3)]) ;
                     P(:, :, 1:2:end) = p ;
                     P(:, :, 2:2:end) = p ;
+                    P
 
                     for i = 1:size(P, 2)
-                        plot(squeeze(P(1, i, 1:end-1)), squeeze(P(1, i, 2:end)), 'k-', 'linewidth', 0.5) ;
+                        plot(squeeze(P(1, i, 1:end-1)), squeeze(P(1, i, 2:end)), 'k-', 'linewidth', 0.5, 'linestyle', '-') ;
                     end
-                    plot(p(:, :, 1), p(:, :, 1), 'kx') ;
+                    plot(squeeze(p(:, :, 1)), squeeze(p(:, :, 1)), 'kx' ) ;
                 end
 
                 % identity map
                 ylabel('x_{k+1}')
-                l_identity = plot(x, x, 'color', [0.4 0.4 0.4]) ;
+                l_identity = plot(x, x, 'color', [0.4 0.4 0.4], 'linestyle', ':', 'MarkerSize', 0.01) ;
 
-                % yyaxis right
-                % % energy surface
-                % E = obj.energy( x ) ;
-                % l_energy = plot(x, E, 'linestyle', '-.', 'color', [0.8500, 0.3250, 0.0980], 'linewidth', 1) ;
-                % ylabel('Energy E(x_{k})')
+                yyaxis right
+                % energy surface
+                E = obj.energy( x ) ;
+                l_energy = plot(x, E, 'linestyle', '-.', 'color', [0.8500, 0.3250, 0.0980], 'linewidth', 1) ;
+                ylabel('Energy E(x_{k})')
 
                 hold off
                 xlabel('x_k')
@@ -227,7 +240,7 @@ classdef Memory_Model
                 % xlim([-4, 4])
                 % ylim([-4, 4])
                 % title('Polynomial kernel (d=5, t=1)')
-                % legend( [l_patterns, l_update, l_energy, l_identity ], {'Pattern', 'Update equation', 'Energy', 'Identity map'} , 'location', 'northwest')
+                legend( [l_patterns, l_update, l_energy, l_identity ], {'Pattern', 'Update equation', 'Energy', 'Identity map'} , 'location', 'northwest')
 
             % if data is 2 dimensional, visualize vector field with nullclines
             elseif (dim_data==2)
@@ -242,7 +255,7 @@ classdef Memory_Model
 
                 % energy surface and nullclines
                 wdw = 10 ; % window
-                prec = wdw/20 ;
+                prec = wdw/10 ;
                 x = -wdw:prec:wdw ;
                 y = -wdw:prec:wdw ;
                 [X, Y] = meshgrid(x, y) ;           
@@ -252,6 +265,7 @@ classdef Memory_Model
                 f2 = reshape( F(2, :), [length(x), length(y)] ) ;
                 % E = obj.energy( [ X(:)' ; Y(:)' ] ) ;
                 % E = reshape( E, [length(x), length(y)]) ;
+                quiver( X, Y, (f1-X), (f2-Y) ) ;
                 %
                 [~, l_nc1] = contour(x, y, X-f1,[0, 0], 'linewidth', 1, 'color', [0.5, 0.5, 0.5], 'linestyle', '--') ;
                 [~, l_nc2] = contour(x, y, Y-f2,[0, 0], 'linewidth', 1, 'color', [0.5, 0.5, 0.5], 'linestyle', ':') ;

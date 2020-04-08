@@ -1,7 +1,7 @@
 % Created  by OctaveOliviers
 %          on 2020-03-29 17:04:25
 %
-% Modified on 2020-03-30 20:43:32
+% Modified on 2020-04-06 08:54:22
 
 clear all
 clc
@@ -18,7 +18,7 @@ max_it  = 10 ;
 alpha   = 1 ;
 
 % hyper-parameters
-p_err   = 1e3 ; % importance of error
+p_err   = 1e2 ; % importance of error
 p_reg   = 1e-2 ; % importance of regularization
 p_drv   = 1e1 ; % importance of minimizing derivative
 
@@ -31,7 +31,7 @@ thetas  = { [1, 0], 0 } ;
 rng(10) ;
 
 % create patterns to memorize
-X = [ 1, 4, 5 ] ;
+X = [ 1, 4 ] ;
 
 % % build models
 % level_1 = build_model( 1, 'd', 'poly', [1, 0], p_err, p_drv, p_reg ) ;
