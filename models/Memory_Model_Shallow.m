@@ -1,7 +1,7 @@
 % Created  by OctaveOliviers
 %          on 2020-03-28 15:17:46
 %
-% Modified on 2020-03-29 19:33:04
+% Modified on 2020-04-11 14:48:29
 
 classdef Memory_Model_Shallow < Memory_Model
 
@@ -10,7 +10,6 @@ classdef Memory_Model_Shallow < Memory_Model
         space       % 'primal' or 'dual'
         phi         % feature map as string
         theta       % parameter of feature map
-        num_lay     % number of layers
         % model hyper-parameters
         p_err       % importance of minimizing error
         p_drv       % importance of minimizing derivative
@@ -27,10 +26,10 @@ classdef Memory_Model_Shallow < Memory_Model
             obj@Memory_Model() ;
             
             % subclass specific variables
-            obj.num_lay = 1 ;
             % architecture
             obj.phi     = phi ;     % string
             obj.theta   = theta ;   % float
+            obj.num_lay = 1 ;       % int
             % hyper-parameters
             obj.p_err   = p_err ;   % float
             obj.p_drv   = p_drv ;   % float

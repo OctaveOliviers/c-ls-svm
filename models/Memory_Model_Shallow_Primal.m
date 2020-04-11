@@ -1,7 +1,7 @@
 % Created  by OctaveOliviers
 %          on 2020-03-29 19:04:04
 %
-% Modified on 2020-03-30 19:53:03
+% Modified on 2020-04-11 14:51:46
 
 classdef Memory_Model_Shallow_Primal < Memory_Model_Shallow
     
@@ -70,6 +70,12 @@ classdef Memory_Model_Shallow_Primal < Memory_Model_Shallow
             % store error, jacobian and lagrangian
             obj.E = obj.error( X, Y ) ;
             obj.J = obj.jacobian( X ) ;
+            % confirm that error and derivative are correct
+            % assert( logical(prod(obj.E == obj.L_e/obj.p_err, 'all' )) , ...
+            %         join([ 'Error is not computed correctly.', ...
+            %                mat2str(obj.E),' with obj.error(), ' ...
+            %                mat2str(obj.L_e/obj.p_err), ' from Lagrange condition']))
+            % assert( logical(prod(obj.J == obj.L_d/obj.p_drv, 'all' )) , 'Derivative is not computed correctly' )
             obj.L = obj.lagrangian( ) ;
 
             % disp("model trained in primal")

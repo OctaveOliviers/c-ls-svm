@@ -1,7 +1,7 @@
 % Created  by OctaveOliviers
 %          on 2020-03-29 19:05:54
 %
-% Modified on 2020-03-30 19:53:05
+% Modified on 2020-04-10 16:28:53
 
 classdef Memory_Model_Shallow_Dual < Memory_Model_Shallow
     
@@ -13,7 +13,7 @@ classdef Memory_Model_Shallow_Dual < Memory_Model_Shallow
             % subclass secific variable
             obj.space = 'dual' ;
             % model information
-            obj.name    = join([ '1-layered network (', phi, ')']) ;
+            obj.name  = join([ '1-layered network (', phi, ')']) ;
         end
 
 
@@ -68,9 +68,13 @@ classdef Memory_Model_Shallow_Dual < Memory_Model_Shallow
 
             % for computable feature map also compute W
             if ( strcmp(obj.phi, 'tanh') | strcmp(obj.phi, 'sign') )
-                P = feval(obj.phi, X) ;
-                F = jac( X, obj.phi ) ;
-                obj.W = 1/obj.p_reg * ( P*obj.L_e' + F*obj.L_d' ) ;
+                Phi = feval(obj.phi, X) ;
+                Jac = jac( X, obj.phi ) ;
+                obj.W = 1/obj.p_reg * ( Phi*obj.L_e' + Jac*obj.L_d' ) ;
+            elseif ( strcmp(obj.phi, 'poly') | obj.theta==[1, 0] )
+                Phi = X ;
+                Jac = repmat( eye(Nx), [1, P] ) ;
+                obj.W = 1/obj.p_reg * ( Phi*obj.L_e' + Jac*obj.L_d' ) ;
             end
 
             % store error, jacobian and lagrangian
