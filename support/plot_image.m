@@ -1,4 +1,8 @@
-% plot obtained image
+% Created  by OctaveOliviers
+%          on 2020-04-11 14:54:28
+%
+% Modified on 2020-04-11 22:09:43
+
 % from https://github.com/brendenlake/omniglot/tree/master/matlab
 function plot_image(img, size_image, name)
     img = reshape(img, [size_image, size_image]);

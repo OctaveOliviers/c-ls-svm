@@ -1,7 +1,7 @@
-% @Author: OctaveOliviers
-% @Date:   2020-03-05 10:01:18
-% @Last Modified by:   OctaveOliviers
-% @Last Modified time: 2020-03-20 09:17:52
+% Created  by OctaveOliviers
+%          on 2020-04-11 14:54:28
+%
+% Modified on 2020-04-11 22:09:25
 
 clear all
 clc
@@ -11,56 +11,65 @@ addpath( './models/' )
 addpath( './support/' )
 
 % parameters of patterns
-dim_patterns 	= 1 ;
-num_patterns 	= 5 ;
-%
-num_test		= 5 ;
+dim_patterns    = 1 ;
+num_patterns    = 4 ;
+scale_patterns  = 18 ; 
 
-% aprameters of model
-% formulation = 'dual' ; feature_map = 'p' ; parameter = [3, 1] ;
-formulation = 'dual' ; feature_map = 'g' ; parameter = 3 ;
-% formulation = 'dual' ; feature_map = 'sign' ; parameter = 0 ;
-% formulation = 'primal' ; feature_map = 'tanh' ; parameter = 0 ;
-num_layers		= 1 ;
-% hyper-parameters
-p_err  			= 1e4 ;	% importance of error
-p_reg  			= 1e1 ;	% importance of regularization
-p_drv  			= 1e3 ;	% importance of minimizing derivative
+% parameters of visualization
+num_test        = 5 ;
+
+% model architecture
+num_layers      = 1 ;
+
+% model training
+max_iter   = 10 ;
+alpha      = 0.001 ;
+
+% create model
+model = Memory_Model( max_iter, alpha ) ;
+
+% parameters of layer
+% space = 'dual' ; phi = 'p' ; theta = [3, 1] ;
+% space = 'dual' ; phi = 'rbf' ; theta = 3 ;
+% space = 'primal' ; phi = 'sign' ; theta = 0 ;
+space = 'primal' ; phi = 'tanh' ; theta = 0 ;
+% hyper-parameters of layer
+p_err = 1e2 ;   % importance of error
+p_reg = 1e-2 ;   % importance of regularization
+p_drv = 1e1 ;   % importance of minimizing derivative
+
+layer_1 = Layer_Dual  ( 'poly', [1, 0], p_err, p_drv, p_reg ) ;
+layer_2 = Layer_Primal( 'tanh', 0,      p_err, p_drv, p_reg ) ;
+
+model = model.add_layer( { layer_1, layer_2 } ) ;
+
 
 % initialize random number generator
 rng(10) ;
 
 % create patterns to memorize
-patterns = 18*rand( dim_patterns, num_patterns ) - 9 ;
-% patterns = -10 : 9 : 10 ;
-% patterns = [0.5*randn(dim_patterns, num_patterns)+[0; -5], ...
-% 			0.5*randn(dim_patterns, num_patterns)+[0; +5], ...
-% 			0.5*randn(dim_patterns, num_patterns)+[-5;  0], ...
-% 			0.5*randn(dim_patterns, num_patterns)+[ 5; 0] ] ;
-% [X, Y] = meshgrid(-6:3:6, -6:3:6) ; patterns = [X(:)' ; Y(:)'] ;
+% patterns = scale_patterns*rand( dim_patterns, num_patterns ) - scale_patterns/2 ;
+patterns = [1, 4] ;
 
 % means are spread evenly around origin
-% num_groups 	= 6 ;
-% z 			= exp(i*pi/1)*roots([ 1, zeros(1, num_groups-1), 1]) ;
-% means 		= 5*[ real(z), imag(z) ]' ;
-% patterns 	= means + randn( dim_patterns, num_groups, num_patterns ) ;
-% labels		= [1:num_groups] .* ones(1, 1, num_patterns) ;
+% num_groups    = 6 ;
+% z             = exp(i*pi/1)*roots([ 1, zeros(1, num_groups-1), 1]) ;
+% means         = 5*[ real(z), imag(z) ]' ;
+% patterns  = means + randn( dim_patterns, num_groups, num_patterns ) ;
+% labels        = [1:num_groups] .* ones(1, 1, num_patterns) ;
 
-% patterns 	= reshape( patterns, [ dim_patterns, num_groups*num_patterns ] ) ;
+% patterns  = reshape( patterns, [ dim_patterns, num_groups*num_patterns ] ) ;
 
 % build model
-model = build_model( num_layers, formulation, feature_map, parameter, p_err, p_drv, p_reg ) ;
+% model = build_model( num_layers, space, phi, theta, p_err, p_drv, p_reg ) ;
 % train model
 model = model.train( patterns ) ;
+
+
 % visualize model
+
+
 % model.visualize( means + 3*randn ) ;
 % test = means + randn(dim_patterns, num_groups, num_test ) ;
 % model.visualize( reshape(test, [dim_patterns, num_groups*num_test] ) ) ;
-model.visualize() ;
-
-% isequal(model.W, model.W')
-
-% check 
-% [E, err, eigv] = model.energy( patterns ) ;
-% err
-% max(eigv, [], 'all')
+model.visualize( scale_patterns*rand( dim_patterns, num_test ) - scale_patterns/2  ) ;
