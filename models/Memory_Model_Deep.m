@@ -1,15 +1,13 @@
 % Created  by OctaveOliviers
 %          on 2020-03-29 19:28:02
 %
-% Modified on 2020-03-30 20:43:32
+% Modified on 2020-04-11 14:51:47
 
 classdef Memory_Model_Deep < Memory_Model
     
     properties
-        models      % cell of shallow models in each layer
-        num_lay     % number of layers
-        max_iter    % maximum number of iterations during training
-        alpha       % learning rate for gradient descent in hidden states
+        max_iter            % maximum number of iterations during training
+        alpha               % learning rate for gradient descent in hidden states
         max_back_track = 10 ; % maximum number of times to backtrack
     end
 
@@ -53,12 +51,18 @@ classdef Memory_Model_Deep < Memory_Model
                 for l = 1:obj.num_lay
                     obj.models{l} = build_model(1, varargin{2}{l}, varargin{3}{l}, varargin{4}{l}, varargin{5}, varargin{6}, varargin{7}) ;
                 end
+                % model information
+                obj.name        = join([ num2str(obj.num_lay), '-layered network (']) ;
+                for l = 1:obj.num_lay
+                    obj.name    = append( obj.name, join([obj.models{l}.phi, ', ']) ) ;
+                end
+                obj.name    = append( obj.name(1:end-2), ')' ) ;
             end
         end
 
 
-        % train model to implicitely find good hidden states with target propagation
-        function obj = train_implicit( obj, X, varargin )
+        % train model to implicitely find good hidden states with method of alternating coordinates
+        function [obj, varargout] = train_implicit( obj, X, varargin )
             % X         patterns to memorize
             
             % extract useful parameters
@@ -73,15 +77,36 @@ classdef Memory_Model_Deep < Memory_Model
                 obj.models{ l } = obj.models{ l }.train( H(:, :, l), H(:, :, l+1) ) ;
             end
 
+            % keep track of evolution through parameter space
+            if (nargout > 1)
+                path = cell(2, obj.max_iter+1) ;
+                path{1, 1} = "evolution of weights" ;
+                path{2, 1} = "evolution of hidden states" ;
+                % [path{:, 2:end}]  = deal( zeros() ) ;
+                path{1, 2} = H ;
+                path{2, 2} = H ;
+            end
+
             % train the network
             for i = 1:obj.max_iter
-                
+                i
                 % store current error on patterns
                 obj.L = obj.lagrangian() ;
-                obj.L = obj.error(X) ;
+                obj.E = obj.error(X) ;
 
                 % update hidden representations
                 for l = obj.num_lay-1:-1:1
+
+                    % objective = @(h) obj.models{l}.lagrangian(H(:, :, l), h) + obj.models{l}.lagrangian(h, H(:, :, l+2))
+                    
+                    % % objective before minimization
+                    % objective(H(:, :, l+1))
+
+                    % options = optimoptions(@fminunc, 'Algorithm', 'trust-region', 'SpecifyObjectiveGradient', true) ;
+                    % H(:, :, l+1) = fminunc(objective, H(:, :, l+1), options) ;
+
+                    % % objective after minimization
+                    % objective(H(:, :, l+1))
 
                     switch obj.models{l+1}.space
 
@@ -96,6 +121,7 @@ classdef Memory_Model_Deep < Memory_Model
                             % derivative at current level
                             dL_l    = obj.models{l}.p_err * E_l ;
 
+                            % hessian of each dimension of the feature map, evaluated in the hidden state
                             Hes     = hes( H(:, :, l+1), obj.models{l+1}.phi ) ;
 
                             % derivative of error wrt each hidden pattern
@@ -132,34 +158,54 @@ classdef Memory_Model_Deep < Memory_Model
                         obj.models{ l } = obj.models{ l }.train( H_c(:, :, l), H_c(:, :, l+1) ) ;
                     end
 
-                    %if ( obj.lagrangian() > obj.L )
-                    if ( norm(obj.error(X)) > norm(obj.E) )
+                    if ( obj.lagrangian() > obj.L )
+                    % if ( norm(obj.error(X)) > norm(obj.E) )
                         b = b/2 ;
+                    elseif ( norm(obj.error(X)) == norm(obj.E) )
+                        k = obj.max_back_track ;
+                        break
                     else
                         break
                     end
+
                 end
-                b
+
+                % update the hidden states
                 if ( k==obj.max_back_track )
                     % did not find better hidden states
                     for l = 1:obj.num_lay
                         obj.models{ l } = obj.models{ l }.train( H(:, :, l), H(:, :, l+1) ) ;
                     end
                     % stop training
+                    disp( "found solution after " + num2str(i) + " iterations" )
                     break
                 else
-                    disp( "backtracking with b = " + num2str(b) )
+                    disp( "backtracking with b = " + num2str(b) + " after " + k + " backtrackings" )
+                    disp( "new value of Lagrangian = " + num2str(obj.lagrangian()) )
+                    disp( "new value of error = " + num2str(norm(obj.error(X))) )
+                    disp( " " )
                     H = H_c ;
+
+                    % keep track of evolution
+                    if (nargout>1)
+                        path{1, i+2} = H_c ;
+                        path{2, i+2} = H_c ;
+                    end 
                 end
 
-                obj.visualize() ;
-                pause(2)
+                % obj.visualize() ;
+                % pause(2)
 
             end
 
             disp("model trained implicitly")
-        end
 
+            % keep track of evolution through parameter space
+            if (nargout > 1)
+                path
+                varargout = [path] ;
+            end
+        end
 
 
         % train model to implicitely find good hidden states with target propagation

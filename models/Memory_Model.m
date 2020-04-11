@@ -1,23 +1,26 @@
 % Created  by OctaveOliviers
 %          on 2020-03-29 18:46:54
 %
-% Modified on 2020-03-30 18:48:51
+% Modified on 2020-04-11 14:51:51
 
 classdef Memory_Model
 
     properties
         % model information
         name = 'Memory model'
+        state   % either encoder or decoder
         % data points, map X -> Y
-        X   % data points to map from
-        Y   % data points to map to = target
+        X       % data points to map from
+        Y       % data points to map to = target
         % model parameters
-        W   % primal weights
-        b   % bias
+        W       % primal weights
+        b       % bias
+        models  % cell of shallow models in each layer
+        num_lay % number of layers
         % value of lagrangian, error and jacobian
-        L   % Lagrangian
-        E   % constraint term 1
-        J   % constraint term 2
+        L       % Lagrangian
+        E       % constraint term 1
+        J       % constraint term 2
     end
 
     methods
@@ -36,6 +39,29 @@ classdef Memory_Model
             %   f = join( [f, num2str(obj.W)] ) ;
             % end
         end
+
+        
+        % get weights matrix
+        function w = get.W(obj)
+            
+            % check if can compute weights
+            for l = 1:obj.num_lay
+                assert( (strcmp(obj.models{l}.space, "primal" )) | ...
+                        (strcmp(obj.models{l}.space, "p"      )) | ...
+                        (strcmp(obj.models{l}.phi,   "poly"   )  & logical(obj.models{l}.phi==[0, 1]) ) , ...
+                        "Can only compute explicit W for models trained in primal space.")
+            end
+
+            if (obj.num_lay==1)
+                w = obj.W ;
+            else
+                w = cell(1, obj.num_lay) ;
+                for l = obj.num_lay
+                    w{1, l} = obj.models{l}.W ;
+                end
+            end
+        end
+
 
         % simulate model
         function [path, varargout] = simulate(obj, start, varargin)
@@ -89,6 +115,18 @@ classdef Memory_Model
 
         % compute energy in state X
         function [E, varargout] = energy(obj, X)
+            
+            % extract usefull information
+            [N, P] = size(X) ;
+
+            E = zeros(1, P) ;
+            for p = 1:P
+                E(p) = -0.5 * phiTphi( X(:, p) , obj.simulate_one_step(X(:, p)), obj.phi, obj.theta ) ;
+            end
+        end        
+
+        % compute energy in state X
+        function [E, varargout] = energy2(obj, X)
             % X     states to compute energy, error and eigenvalues for in columns
 
             % extract usefull information
@@ -174,60 +212,116 @@ classdef Memory_Model
                 
                 figure('position', [300, 500, 400, 300])
                 
-                x = -1+1.5*min(obj.X, [], 'all') : ...
-                    (max(obj.X, [], 'all')-min(obj.X, [], 'all'))/20/num_data : ...
-                    1+1.5*max(obj.X, [], 'all') ;
+                if ( strcmp(obj.state, 'encoder') )
 
-                % x = -4:0.1:4 ;
+                    x = -1+1.5*min(obj.X, [], 'all') : ...
+                        (max(obj.X, [], 'all')-min(obj.X, [], 'all'))/20/num_data : ...
+                        1+1.5*max(obj.X, [], 'all') ;
 
-                box on
-                hold on
-                yyaxis left
-                
-                % patterns to memorize
-                l_patterns = plot( obj.X, obj.X, 'rx', 'linewidth', 2 ) ;
-
-                % update function f(x_k)
-                f = obj.simulate_one_step(x) ;
-                l_update = plot( x, f, 'linestyle', '-', 'color', [0, 0.4470, 0.7410], 'linewidth', 1) ;
-
-                % simulate model from initial conditions in varargin
-                if (nargin>1)
-                    x_k = varargin{1} ; 
-                    p   = obj.simulate( x_k ) ;
+                    box on
+                    hold on
                     
-                    P = zeros([size(p, 1), size(p, 2), 2*size(p, 3)]) ;
-                    P(:, :, 1:2:end) = p ;
-                    P(:, :, 2:2:end) = p ;
+                    % patterns to memorize
+                    l_patterns = plot( obj.X, obj.X, 'rx', 'linewidth', 2 ) ;
 
-                    for i = 1:size(P, 2)
-                        plot(squeeze(P(1, i, 1:end-1)), squeeze(P(1, i, 2:end)), 'k-', 'linewidth', 0.5) ;
+                    % update function f(x_k)
+                    f = obj.simulate_one_step(x) ;
+                    l_update = plot( x, f, 'linestyle', '-', 'color', [0, 0.4470, 0.7410], 'linewidth', 1) ;
+
+                    % simulate model from initial conditions in varargin
+                    if (nargin>1)
+                        x_k = varargin{1} ; 
+                        p   = obj.simulate( x_k ) ;
+                        
+                        P = zeros([size(p, 1), size(p, 2), 2*size(p, 3)]) ;
+                        P(:, :, 1:2:end) = p ;
+                        P(:, :, 2:2:end) = p ;
+                        P
+
+                        for i = 1:size(P, 2)
+                            plot(squeeze(P(1, i, 1:end-1)), squeeze(P(1, i, 2:end)), 'k-', 'linewidth', 0.5, 'linestyle', '-') ;
+                        end
+                        plot(squeeze(p(:, :, 1)), squeeze(p(:, :, 1)), 'kx' ) ;
                     end
-                    plot(p(:, :, 1), p(:, :, 1), 'kx') ;
+
+                    % identity map
+                    ylabel('x_{k+1}')
+                    l_identity = plot(x, x, 'color', [0.4 0.4 0.4], 'linestyle', ':', 'MarkerSize', 0.01) ;
+
+                    % yyaxis right
+                    % % energy surface
+                    % E = obj.energy( x ) ;
+                    % l_energy = plot(x, E, 'linestyle', '-.', 'color', [0.8500, 0.3250, 0.0980], 'linewidth', 1) ;
+                    % ylabel('Energy E(x_{k})')
+
+                    hold off
+                    xlabel('x_k')
+                    % axes through origin
+                    % axis equal
+                    ax = gca;
+                    ax.XAxisLocation = 'origin';
+                    % ax.YAxisLocation = 'origin';
+                    title( obj.name )
+                    % xlim([-4, 4])
+                    % ylim([-4, 4])
+                    legend( [l_patterns, l_update, l_energy, l_identity ], {'Pattern', 'Update equation', 'Energy', 'Identity map'} , 'location', 'northwest')
+
+                else
+                    % x = -1+1.5*min(obj.X, [], 'all') : ...
+                    %     (max(obj.X, [], 'all')-min(obj.X, [], 'all'))/20/num_data : ...
+                    %     1+1.5*max(obj.X, [], 'all') ;
+
+                    x = -6:0.1:6 ;
+
+                    box on
+                    hold on
+                    yyaxis left
+                    
+                    % patterns to memorize
+                    l_patterns = plot( obj.X, obj.X, 'rx', 'linewidth', 2 ) ;
+
+                    % update function f(x_k)
+                    f = obj.simulate_one_step(x) ;
+                    l_update = plot( x, f, 'linestyle', '-', 'color', [0, 0.4470, 0.7410], 'linewidth', 1) ;
+
+                    % simulate model from initial conditions in varargin
+                    if (nargin>1)
+                        x_k = varargin{1} ; 
+                        p   = obj.simulate( x_k ) ;
+                        
+                        P = zeros([size(p, 1), size(p, 2), 2*size(p, 3)]) ;
+                        P(:, :, 1:2:end) = p ;
+                        P(:, :, 2:2:end) = p ;
+
+                        for i = 1:size(P, 2)
+                            plot(squeeze(P(1, i, 1:end-1)), squeeze(P(1, i, 2:end)), 'k-', 'linewidth', 0.5, 'linestyle', '-') ;
+                        end
+                        plot(squeeze(p(:, :, 1)), squeeze(p(:, :, 1)), 'kx' ) ;
+                    end
+
+                    % identity map
+                    ylabel('x_{k+1}')
+                    l_identity = plot(x, x, 'color', [0.4 0.4 0.4], 'linestyle', ':', 'MarkerSize', 0.01) ;
+
+                    % yyaxis right
+                    % % energy surface
+                    % E = obj.energy( x ) ;
+                    % l_energy = plot(x, E, 'linestyle', '-.', 'color', [0.8500, 0.3250, 0.0980], 'linewidth', 1) ;
+                    % ylabel('Energy E(x_{k})')
+
+                    hold off
+                    xlabel('x_k')
+                    % axes through origin
+                    % axis equal
+                    ax = gca;
+                    ax.XAxisLocation = 'origin';
+                    % ax.YAxisLocation = 'origin';
+                    title( obj.name )
+                    % xlim([-4, 4])
+                    % ylim([-4, 4])
+                    % legend( [l_patterns, l_update, l_energy, l_identity ], {'Pattern', 'Update equation', 'Energy', 'Identity map'} , 'location', 'northwest')                    
                 end
 
-                % identity map
-                ylabel('x_{k+1}')
-                l_identity = plot(x, x, 'color', [0.4 0.4 0.4]) ;
-
-                % yyaxis right
-                % % energy surface
-                % E = obj.energy( x ) ;
-                % l_energy = plot(x, E, 'linestyle', '-.', 'color', [0.8500, 0.3250, 0.0980], 'linewidth', 1) ;
-                % ylabel('Energy E(x_{k})')
-
-                hold off
-                xlabel('x_k')
-                % axes through origin
-                % axis equal
-                ax = gca;
-                ax.XAxisLocation = 'origin';
-                % ax.YAxisLocation = 'origin';
-                title( obj.name )
-                % xlim([-4, 4])
-                % ylim([-4, 4])
-                % title('Polynomial kernel (d=5, t=1)')
-                % legend( [l_patterns, l_update, l_energy, l_identity ], {'Pattern', 'Update equation', 'Energy', 'Identity map'} , 'location', 'northwest')
 
             % if data is 2 dimensional, visualize vector field with nullclines
             elseif (dim_data==2)
@@ -242,7 +336,7 @@ classdef Memory_Model
 
                 % energy surface and nullclines
                 wdw = 10 ; % window
-                prec = wdw/20 ;
+                prec = wdw/10 ;
                 x = -wdw:prec:wdw ;
                 y = -wdw:prec:wdw ;
                 [X, Y] = meshgrid(x, y) ;           
@@ -252,6 +346,7 @@ classdef Memory_Model
                 f2 = reshape( F(2, :), [length(x), length(y)] ) ;
                 % E = obj.energy( [ X(:)' ; Y(:)' ] ) ;
                 % E = reshape( E, [length(x), length(y)]) ;
+                quiver( X, Y, (f1-X), (f2-Y) ) ;
                 %
                 [~, l_nc1] = contour(x, y, X-f1,[0, 0], 'linewidth', 1, 'color', [0.5, 0.5, 0.5], 'linestyle', '--') ;
                 [~, l_nc2] = contour(x, y, Y-f2,[0, 0], 'linewidth', 1, 'color', [0.5, 0.5, 0.5], 'linestyle', ':') ;
@@ -279,7 +374,7 @@ classdef Memory_Model
                 %           ', p_reg = ', num2str(obj.p_reg), ...
                 %           ', p_drv = ', num2str(obj.p_drv) ]))
                 % title( join([ num2str(obj.num_lay), ' layers ', obj.phi{1} ]) )
-                title('5 layers of poly (d=3, t=1)')
+                title( obj.name )
                 % legend( [l_patterns, l_nc1, l_nc2], {'Pattern', 'x_1 nullcline', 'x_2 nullcline'}, 'location', 'southwest') ;
 
             end
