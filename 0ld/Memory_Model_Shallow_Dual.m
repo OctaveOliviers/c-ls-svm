@@ -1,7 +1,7 @@
 % Created  by OctaveOliviers
 %          on 2020-03-15 16:25:40
 %
-% Modified on 2020-04-11 19:29:56
+% Modified on 2020-04-14 14:35:44
 
 classdef Layer_Dual < Layer
     
@@ -130,11 +130,11 @@ classdef Layer_Dual < Layer
         function L = layer_lagrangian(obj, varargin)
 
             % compute lagrangian of model
-            if ( nargin < 2 )
+            if ( nargin == 1 )
                 L = obj.L ;
 
             % evaluate lagrangian with new parameters
-            else
+            elseif ( nargin == 3 )
                 X = varargin{1} ;
                 Y = varargin{2} ;
                 

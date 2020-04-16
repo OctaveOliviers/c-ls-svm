@@ -1,16 +1,16 @@
 % Created  by OctaveOliviers
 %          on 2020-03-15 16:25:40
 %
-% Modified on 2020-04-11 22:09:11
+% Modified on 2020-04-15 18:21:09
 
 classdef Layer_Primal < Layer
     
     methods
 
         % constructor
-        function obj = Layer_Primal(phi, theta, p_err, p_drv, p_reg)
+        function obj = Layer_Primal(varargin)
             % superclass constructor
-            obj@Layer(phi, theta, p_err, p_drv, p_reg) ;
+            obj@Layer(varargin{:}) ;
             % subclass secific variable
             obj.space = 'primal' ;
         end
@@ -23,18 +23,23 @@ classdef Layer_Primal < Layer
             
             if ( nargin<3 )
                 Y = X ;
+
+                % check correctness of input
+                assert( size(X, 1)==obj.N_out,   'Number of neurons in layer and X do not match.' ) ;
             else
                 Y = varargin{1} ;
 
                 % check correctness of input
-                assert( size(X, 2)==size(Y, 2),  'Numbr of patterns in X and Y do not match.' ) ;
-            end     
+                assert( size(Y, 1)==obj.N_out,   'Number of neurons in layer and Y do not match.' ) ;
+                assert( size(Y, 2)==size(X, 2),  'Number of patterns in X and Y do not match.' ) ;
+            end
 
             % extract useful parameters
-            [Nx, P] = size(X) ;
-            [Ny, ~] = size(Y) ;
-            obj.X   = X ;
-            obj.Y   = Y ;
+            [Nx, P]   = size(X) ;
+            [Ny, ~]   = size(Y) ;
+            obj.X     = X ;
+            obj.Y     = Y ;
+            obj.N_in  = Nx ;
 
             % feature map in each data point
             f = feval(obj.phi, X) ;
@@ -103,8 +108,6 @@ classdef Layer_Primal < Layer
                 F = jac( X, obj.phi, obj.theta ) ;
                 J = (- obj.W' * F) ;
             end
-
-            
         end
 
 
@@ -123,8 +126,8 @@ classdef Layer_Primal < Layer
                 E = obj.layer_error( X, Y ) ; 
                 J = obj.layer_jacobian( X ) ;
 
-                L = obj.p_err/2 * trace( E' * E ) + ... % error term
-                    obj.p_drv/2 * trace( J' * J ) + ... % derivative term
+                L = obj.p_err/2 * trace( E' * E ) + ...         % error term
+                    obj.p_drv/2 * trace( J' * J ) + ...         % derivative term
                     obj.p_reg/2 * trace( obj.W' * obj.W ) ;     % regularization term
             end
         end

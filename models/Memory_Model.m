@@ -1,7 +1,7 @@
 % Created  by OctaveOliviers
 %          on 2020-03-05 09:54:32
 %
-% Modified on 2020-04-11 22:09:22
+% Modified on 2020-04-15 18:22:16
 
 classdef Memory_Model
 
@@ -15,7 +15,7 @@ classdef Memory_Model
         % training parameters
         max_iter            % maximum number of iterations during implicit training
         alpha               % learning rate for gradient descent in hidden states
-        max_back_track = 10 % maximum number of back tracking in gradient descent
+        max_back_track = 20 % maximum number of back tracking in gradient descent
         % results of optimization process
         E                   % value of error in Lagrange function
         J                   % value of jacobian in Lagrange function
@@ -71,9 +71,9 @@ classdef Memory_Model
             %   obj.add_layer( layer )
             %
             % of add layer from its parameters
-            %   obj.add_layer( space, phi, theta, p_err, p_drv, p_reg )
+            %   obj.add_layer( n_out, space, phi, theta, p_err, p_drv, p_reg )
 
-            % append to cell
+            % append to cell of layers
             if ( nargin < 3 )
                 num_new_lay = length(varargin{1}) ;
                 obj.layers(end+1:end+num_new_lay) = varargin{1} ;
@@ -81,6 +81,7 @@ classdef Memory_Model
                 switch varargin{1}
                     case {"primal", "p"}
                         obj.layers{end+1} = Layer_Primal( varargin{2:end} ) ;
+                        obj.layers{end}.n_in = obj.layers{end-1}.n_out ;
 
                     case {"dual", "d"}
                         obj.layers{end+1} = Layer_Dual( varargin{2:end} ) ;
@@ -159,7 +160,7 @@ classdef Memory_Model
         function J_new = model_jacobian(obj, varargin)
             
             % compute jacobian of model
-            if (nargin<2)
+            if (nargin==1)
                 [N, P] = size( obj.patterns ) ;
 
             % compute jacobian in new point
@@ -195,11 +196,27 @@ classdef Memory_Model
 
             % evaluate lagrangian with new parameters
             else
-                % cell of { patterns, hidden states, patterns }
-                D = varargin{1} ; 
-                L = obj.layers{ 1 }.layer_lagrangian( D{1}, D{2} ) ;
-                for l = 2:obj.num_lay
-                    L = L + obj.layers{ l }.layer_lagrangian( D{l}, D{l+1} ) ;
+                % evaluate lagrangian in new data points
+                if ~iscell(varargin{1})
+                    assert( obj.num_lay==1, 'This only works for one layered models.')
+
+                    % matrix with data points to evaluate lagrangian in
+                    X = varargin{1} ;
+                    [N, P] = size(X) ;
+
+                    L = zeros(1, P) ;
+                    for p = 1:P
+                        L(p) = obj.layers{1}.layer_lagrangian( X(:, p), X(:, p) );
+                    end
+
+                % evaluate lagrangian with new hidden layers
+                else
+                    % cell of { patterns, hidden states, patterns }
+                    D = varargin{1} ;
+                    L = obj.layers{ 1 }.layer_lagrangian( D{1}, D{2} ) ;
+                    for l = 2:obj.num_lay
+                        L = L + obj.layers{ l }.layer_lagrangian( D{l}, D{l+1} ) ;
+                    end
                 end
             end            
         end
@@ -270,8 +287,13 @@ classdef Memory_Model
 
             % initialize hidden representations of patterns
             H            = cell( 1, obj.num_lay-1 ) ;
-            [H{:}]       = deal( X ) ;
+            % [H{:}]       = deal( X ) ;
             step         = cell( size(H) ) ;
+
+            % initialize each hidden state randomly
+            for l = 1:obj.num_lay-1
+                H(l) = { randn( obj.layers{l}.N_out, P ) } ;
+            end
 
             % keep track of evolution through parameter space
             if (nargout > 1)
@@ -284,10 +306,14 @@ classdef Memory_Model
             for i = 1:obj.max_iter
                 i
 
-                % train model
-                obj = obj.train_explicit( X, H ) ;
+                % train deep model using the Method of Alternating Coordinates
+                % https://arxiv.org/abs/1212.5921
 
-                % update hidden representations
+                % update weights with convex optimization 
+                obj = obj.train_explicit( X, H ) ;
+                obj.L
+
+                % update hidden representations with gradient descent
                 for l = obj.num_lay-1:-1:1
 
                     % objective = @(h) obj.layers{l}.lagrangian(H(:, :, l), h) + obj.layers{l}.lagrangian(h, H(:, :, l+2))
@@ -365,6 +391,7 @@ classdef Memory_Model
                     %
                     L = obj.model_lagrangian( [ X, H_c, X ] )
                     if ( L > obj.L )
+                    %
                         b = b/2 ;
                     % elseif ( temp.E == )
                     %     k = obj.max_back_track ;
@@ -410,6 +437,13 @@ classdef Memory_Model
             disp("model trained implicitly")
         end
 
+
+        % test for energy function
+        function [E, varargout] = energy_2(obj, X)
+
+            E = obj.model_lagrangian( X ) ;
+
+        end
 
         % compute energy in state X
         function [E, varargout] = energy(obj, X)
@@ -506,16 +540,21 @@ classdef Memory_Model
                 %     (max(obj.X, [], 'all')-min(obj.X, [], 'all'))/20/num_data : ...
                 %     1+1.5*max(obj.X, [], 'all') ;
 
-                x = -6:0.1:6 ;
+                wdw = 10 ;
+                prec = wdw/25 ;
+                x = -wdw:prec:wdw ;
 
                 yyaxis left
                 
-                % patterns to memorize
-                l_patterns = plot( obj.patterns, obj.patterns, 'rx', 'linewidth', 2 ) ;
-
                 % update function f(x_k)
                 f = obj.simulate_one_step(x) ;
                 l_update = plot( x, f, 'linestyle', '-', 'color', [0, 0.4470, 0.7410], 'linewidth', 1) ;
+
+                % draw derivative to update equation
+                % J = -1*obj.model_jacobian( x ) ;
+                % for p = 1:length(x)
+                %     line( [ x(p), x(p)+prec ], [ f(p), f(p)+prec*J(p) ], 'color', [0,0,1] )
+                % end
 
                 % simulate model from initial conditions in varargin
                 if (nargin>1)
@@ -536,10 +575,13 @@ classdef Memory_Model
                 ylabel('x_{k+1}')
                 l_identity = plot(x, x, 'color', [0.4 0.4 0.4], 'linestyle', ':', 'MarkerSize', 0.01) ;
 
+                % patterns to memorize
+                l_patterns = plot( obj.patterns, obj.patterns, 'rx', 'linewidth', 2 ) ;
+
                 % yyaxis right
                 % % energy surface
-                % E = obj.energy( x ) ;
-                % l_energy = plot(x, E, 'linestyle', '-.', 'color', [0.8500, 0.3250, 0.0980], 'linewidth', 1) ;
+                % E = obj.energy_2( x ) ;
+                % l_energy = semilogy(x, E, 'linestyle', '-.', 'color', [0.8500, 0.3250, 0.0980], 'linewidth', 1) ;
                 % ylabel('Energy E(x_{k})')
 
                 hold off
@@ -557,12 +599,9 @@ classdef Memory_Model
             % if data is 2 dimensional, visualize vector field with nullclines
             elseif (dim_data==2)
             
-                % patterns to memorize
-                l_patterns = plot(obj.patterns(1, :), obj.patterns(2, :), 'rx', 'linewidth', 2) ;
-
                 % energy surface and nullclines
-                wdw = 10 ; % window
-                prec = wdw/10 ;
+                wdw = 20 ; % window
+                prec = wdw/20 ;
                 x = -wdw:prec:wdw ;
                 y = -wdw:prec:wdw ;
                 [X, Y] = meshgrid(x, y) ;           
@@ -572,11 +611,14 @@ classdef Memory_Model
                 f2 = reshape( F(2, :), [length(x), length(y)] ) ;
                 % E = obj.energy( [ X(:)' ; Y(:)' ] ) ;
                 % E = reshape( E, [length(x), length(y)]) ;
-                quiver( X, Y, (f1-X), (f2-Y) ) ;
-                %
-                [~, l_nc1] = contour(x, y, X-f1,[0, 0], 'linewidth', 1, 'color', [0.5, 0.5, 0.5], 'linestyle', '--') ;
-                [~, l_nc2] = contour(x, y, Y-f2,[0, 0], 'linewidth', 1, 'color', [0.5, 0.5, 0.5], 'linestyle', ':') ;
+                scale = 0.5 ;
+                % quiver( X, Y, (f1-X), (f2-Y), scale ) ;
                 % contour(x, y, E) ;
+
+                % plot stream lines
+                [~, on] = inpolygon( X(:), Y(:), [min(x), max(x), max(x), min(x)], [min(y), min(y), max(y), max(y)] ) ;
+                % streamline( X, Y, (f1-X), (f2-Y), X(on), Y(on) )
+                streamline( X, Y, (f1-X), (f2-Y), X(1:4:end), Y(1:4:end) )
 
                 % simulate model from initial conditions in varargin
                 if (nargin>1)
@@ -588,6 +630,31 @@ classdef Memory_Model
                     end
                     plot(p(1, :, 1), p(2, :, 1), 'ko')
                 end
+
+                % draw principal component of jacobian in each grid point
+                J = obj.model_jacobian( [ X(:)' ; Y(:)' ] ) ;
+                E_x = zeros(size(X)) ;
+                E_y = zeros(size(Y)) ;
+                div = zeros(size(X)) ;
+                for p = 1:size(J, 2)/2
+                    [eig_vec, eig_val] = eigs( J(:, 1+2*(p-1):2*p), 1 ) ;
+                    E_x(p) = abs(eig_val)*eig_vec(1) ;
+                    E_y(p) = abs(eig_val)*eig_vec(2) ;
+                    % div(p) = trace( J(:, 1+2*(p-1):2*p) ) ;
+                end
+                % % arrows in one direction
+                % quiver(X, Y,  E_x,  E_y, scale )
+                % % arrows in the other direction
+                % quiver(X, Y, -E_x, -E_y, scale )
+                % div = divergence( X, Y, (f1-X), (f2-Y) ) ;
+                % contour( X, Y, div )
+
+                %
+                [~, l_nc1] = contour(x, y, X-f1,[0, 0], 'linewidth', 1, 'color', [0.2, 0.2, 0.2], 'linestyle', '--') ;
+                [~, l_nc2] = contour(x, y, Y-f2,[0, 0], 'linewidth', 1, 'color', [0.2, 0.2, 0.2], 'linestyle', ':') ;
+
+                % patterns to memorize
+                l_patterns = plot(obj.patterns(1, :), obj.patterns(2, :), 'rx', 'linewidth', 2) ;
 
                 hold off
                 xlabel('x_1')

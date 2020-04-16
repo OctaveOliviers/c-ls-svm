@@ -1,13 +1,15 @@
 % Created  by OctaveOliviers
 %          on 2020-04-11 14:59:10
 %
-% Modified on 2020-04-11 22:09:15
+% Modified on 2020-04-15 16:56:45
 
 classdef Layer
 
     properties
         X        % points to map from
-        Y        % points to map to    
+        Y        % points to map to
+        N_in     % dimansion of X
+        N_out    % dimansion of Y
         % layer parameters
         space    % 'primal' or 'dual'
         phi      % feature map as string
@@ -30,14 +32,17 @@ classdef Layer
     methods
 
         % constructor
-        function obj = Layer(phi, theta, p_err, p_drv, p_reg)
-            % layer parameters
-            obj.phi     = phi ;     % string
-            obj.theta   = theta ;   % float
+        function obj = Layer(N_out, p_err, p_drv, p_reg, phi, varargin)
             % hyper-parameters
             obj.p_err   = p_err ;   % float
             obj.p_drv   = p_drv ;   % float
             obj.p_reg   = p_reg ;   % float
+            % layer parameters
+            obj.N_out   = N_out ;   % integer
+            obj.phi     = phi ;     % string
+            if nargin == 6
+                obj.theta = varargin{1} ; % float
+            end
         end
 
 
