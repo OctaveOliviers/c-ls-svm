@@ -1,15 +1,16 @@
 % Created  by OctaveOliviers
 %          on 2020-04-11 14:59:10
 %
-% Modified on 2020-04-15 16:56:45
+% Modified on 2020-04-16 18:08:45
 
 classdef Layer
 
     properties
         X        % points to map from
         Y        % points to map to
-        N_in     % dimansion of X
-        N_out    % dimansion of Y
+        N_in     % dimension of X
+        N_out    % dimension of Y
+        P        % number of points to store
         % layer parameters
         space    % 'primal' or 'dual'
         phi      % feature map as string

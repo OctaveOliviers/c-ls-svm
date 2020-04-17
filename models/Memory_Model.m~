@@ -288,12 +288,13 @@ classdef Memory_Model
 
             % initialize hidden representations of patterns
             H     = cell( 1, obj.num_lay-1 ) ;
+            % [H{:}] = deal( X ) ;
             
+
             % initialize each hidden state randomly
-            [H{:}] = deal( X ) ;
-            % for l = 1:obj.num_lay-1
-            %    H(l) = { randn( obj.layers{l}.N_out, P ) } ;
-            % end
+            for l = 1:obj.num_lay-1
+                H(l) = { randn( obj.layers{l}.N_out, P ) } ;
+            end
 
             % keep track of evolution through parameter space
             if (nargout > 1)

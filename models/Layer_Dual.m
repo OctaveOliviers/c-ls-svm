@@ -1,7 +1,7 @@
 % Created  by OctaveOliviers
 %          on 2020-03-15 16:25:40
 %
-% Modified on 2020-04-16 08:18:05
+% Modified on 2020-04-16 18:48:25
 
 classdef Layer_Dual < Layer
     
@@ -40,7 +40,8 @@ classdef Layer_Dual < Layer
             obj.X     = X ;
             obj.Y     = Y ;
             obj.N_in  = Nx ;
-
+            obj.P     = P ;
+            
             % build kernel terms
             pTp = phiTphi(X, X, obj.phi, obj.theta) ;
             pTj = phiTjac(X, X, obj.phi, obj.theta) ;
@@ -93,12 +94,12 @@ classdef Layer_Dual < Layer
             % X     states to compute error in
 
             % compute error of model
-            if ( nargin < 2 )
+            if ( nargin == 1 )
                 E = obj.E ;
 
             % compute error in new point
-            else
-                E = varargin{1} - obj.simulate_one_step( varargin{1} ) ;
+            elseif ( nargin == 3 )
+                E = varargin{2} - obj.simulate_one_step( varargin{1} ) ;
             end
         end
 
@@ -157,6 +158,29 @@ classdef Layer_Dual < Layer
                     obj.p_drv/2 * trace( J' * J ) + ... % derivative term
                     obj.p_reg/2 * trace( WTW ) ;        % regularization term
             end
+        end
+
+
+        % compute gradient of Lagrangian with respect to its input evaluated in columns of X
+        function grad = gradient_lagrangian_wrt_input(obj)
+
+            error( "Function not yet implemented." )
+            % gradient of error
+
+            % gradient of jacobian
+            
+            % grad = obj.p_err * dE + obj.p_drv * dJ ;
+        end
+
+
+        % compute gradient of Lagrangian with respect to its input evaluated in columns of Y
+        function grad = gradient_lagrangian_wrt_output(obj)
+
+            % gradient of error
+            grad = obj.p_err * obj.E ;
+
+            % gradient of jacobian
+            % none
         end
 
 

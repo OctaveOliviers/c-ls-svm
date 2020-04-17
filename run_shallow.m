@@ -1,7 +1,7 @@
 % Created  by OctaveOliviers
 %          on 2020-04-11 14:54:28
 %
-% Modified on 2020-04-15 18:17:53
+% Modified on 2020-04-16 16:29:26
 
 clear all
 clc
@@ -22,8 +22,8 @@ num_test        = 5 ;
 num_layers      = 1 ;
 
 % model training
-max_iter   = 10 ;
-alpha      = 0.001 ;
+max_iter   = 3 ;
+alpha      = 1 ;
 
 % create model
 model = Memory_Model( max_iter, alpha ) ;
@@ -35,7 +35,7 @@ model = Memory_Model( max_iter, alpha ) ;
 space = 'primal' ; phi = 'sign' ; theta = 0 ;
 
 % hyper-parameters of layer
-p_err = 1e2 ;   % importance of error
+p_err = 1e3 ;   % importance of error
 p_reg = 1e-1 ;   % importance of regularization
 p_drv = 1e1 ;   % importance of minimizing derivative
 
@@ -43,7 +43,7 @@ layer_1 = Layer_Dual  ( dim_patterns, p_err, p_drv, p_reg, 'poly', [1, 0] ) ;
 layer_2 = Layer_Primal( dim_patterns, p_err, p_drv, p_reg, 'tanh' ) ;
 
 % model = model.add_layer( { Layer_Primal( dim_patterns, p_err, p_drv, p_reg, 'tanh' ) } ) ;
-% model = model.add_layer( { Layer_Dual( dim_patterns, p_err, p_drv, p_reg, 'poly', [1, 1] ) } ) ;
+% model = model.add_layer( { Layer_Dual( dim_patterns, p_err, p_drv, p_reg, 'rbf', 2 ) } ) ;
 %
 model = model.add_layer( { layer_1, layer_2 } ) ;
 
@@ -70,6 +70,8 @@ model = model.train( patterns ) ;
 
 % visualize model
 model.visualize(  ) ;
+
+model.layers{1}
 
 % model.layers{1}
 
