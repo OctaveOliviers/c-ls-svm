@@ -1,7 +1,7 @@
 % Created  by OctaveOliviers
 %          on 2020-04-16 16:40:59
 %
-% Modified on 2020-04-16 18:48:25
+% Modified on 2020-04-26 11:05:05
 
 function x_opt = gradient_descent( objective_fcn, gradient_fcn, x_0, varargin )
 

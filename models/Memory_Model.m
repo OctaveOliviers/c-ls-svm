@@ -1,7 +1,7 @@
 % Created  by OctaveOliviers
 %          on 2020-03-05 09:54:32
 %
-% Modified on 2020-04-16 16:19:03
+% Modified on 2020-04-27 22:09:38
 
 classdef Memory_Model
 
@@ -336,53 +336,12 @@ classdef Memory_Model
             
             % compute gradient wrt each hidden state
             for l = obj.num_lay-1:-1:1
-                
+                % gradient wrt layer l
                 dL_l   = obj.layers{l}.gradient_lagrangian_wrt_output() ;
+                % gradient wrt layer l+1
                 dL_lp1 = obj.layers{l+1}.gradient_lagrangian_wrt_input() ;
                 
-                grad( l ) = { dL_l + dL_lp1 } ;
-                
-                
-                
-%                 switch obj.layers{l+1}.space
-% 
-%                     case {'primal', 'p'}
-% 
-%                         % extract useful parameters
-%                         E_l    = obj.layers{l}.E ;
-%                         E_lp1  = obj.layers{l+1}.E ;
-%                         J_lp1  = obj.layers{l+1}.J ;
-%                         W_lp1  = obj.layers{l+1}.W ;
-% 
-%                         % derivative at current level
-%                         dL_l   = obj.layers{l}.p_err * E_l ;
-% 
-%                         % hessian of each dimension of the feature map, evaluated in the hidden state
-%                         Hes    = hes( H{l}, obj.layers{l+1}.phi ) ;
-% 
-%                         % derivative of error wrt each hidden pattern
-%                         dE_lp1 = zeros(N, P) ;
-%                         for p = 1:P
-%                             dE_lp1(:, p) = J_lp1(:, 1+(p-1)*N:p*N)' * E_lp1(:, p) ;
-%                         end
-%                         % derivative of jacobian wrt each hidden pattern
-%                         dJ_lp1  = zeros(N, P) ;
-%                         for p = 1:P
-%                             for n = 1:N
-%                                 dJ_lp1(n, p) = trace( squeeze(Hes(:, n+(p-1)*N, :)) * W_lp1 * J_lp1(:, 1+(p-1)*N:p*N) ) ;
-%                             end
-%                         end
-%                         % derivative at next level
-%                         dL_lp1   = obj.layers{l+1}.p_err * dE_lp1 + obj.layers{l}.p_drv * dJ_lp1 ;
-% 
-%                         % store update of hidden states
-%                         grad( l ) = { dL_l + dL_lp1 } ;
-%                         % grad( l ) = { dL_lp1 } ;
-% 
-%                     case {'dual', 'd'}
-%                         warning( 'target prop is not yet implemented for dual formulation' ) ;
-%                 end
-                
+                grad( l ) = { dL_l + dL_lp1 } ;                
             end
         end
         
@@ -416,7 +375,7 @@ classdef Memory_Model
                     if ( N==1 )
                         int_k   = layer.L_e * ( ( layer.X'*X + layer.theta(2) ).^(layer.theta(1)+1) ./ layer.patterns' ) / (layer.theta(1)+1) ;
                         k       = layer.L_d * ( phiTphi( layer.X, X, layer.phi, layer.theta ) .* X ./ layer.X' ...
-                                            - phiTphi( layer.X, X, layer.phi, [layer.theta(1)+1, layer.theta(2)] ) ./ (layer.X.^2)' / (layer.theta(1)+1) ) ;
+                                            -   phiTphi( layer.X, X, layer.phi, [layer.theta(1)+1, layer.theta(2)] ) ./ (layer.X.^2)' / (layer.theta(1)+1) ) ;
 
                         E = 1/2 * ( vecnorm(X, 2, 1).^2 - 2/layer.p_reg * (int_k + k) - 2*layer.b'*X ) ;
                     else
@@ -477,8 +436,15 @@ classdef Memory_Model
             dim_data = size(obj.patterns, 1) ;
             num_data = size(obj.patterns, 2) ;
 
+            % colors
+            orange = [230, 135, 28]/255 ;
+            KUL_blue = [0.11,0.55,0.69] ;
+            green = [58, 148, 22]/255 ;
+            red = [194, 52, 52]/255 ;
+
             % create figure box
-            figure('position', [300, 500, 330, 300])
+            figure('position', [300, 500, 300, 285])
+            set(groot, 'DefaultAxesTickLabelInterpreter', 'latex')
             box on
             hold on
 
@@ -497,7 +463,7 @@ classdef Memory_Model
                 
                 % update function f(x_k)
                 f = obj.simulate_one_step(x) ;
-                l_update = plot( x, f, 'linestyle', '-', 'color', [0, 0.4470, 0.7410], 'linewidth', 1) ;
+                l_update = plot( x, f, 'linestyle', '-', 'color', KUL_blue, 'linewidth', 1) ;
 
                 % draw derivative to update equation
                 % J = -1*obj.model_jacobian( x ) ;
@@ -515,42 +481,46 @@ classdef Memory_Model
                     P(:, :, 2:2:end) = p ;
 
                     for i = 1:size(P, 2)
-                        plot(squeeze(P(1, i, 1:end-1)), squeeze(P(1, i, 2:end)), 'k-', 'linewidth', 0.5, 'linestyle', '-') ;
+                        plot(squeeze(P(1, i, 1:end-1)), squeeze(P(1, i, 2:end)), 'linewidth', 1, 'linestyle', '-','color', orange) ;
                     end
-                    plot(squeeze(p(:, :, 1)), squeeze(p(:, :, 1)), 'kx' ) ;
+                    plot(squeeze(p(:, :, 1)), squeeze(p(:, :, 1)), 'o', 'color', orange, 'linewidth', 1.5 ) ;
                 end
 
                 % identity map
-                ylabel('x_{k+1}')
+                ylabel('$x^{(k+1)}$', 'interpreter', 'latex', 'fontsize', 14)
                 l_identity = plot(x, x, 'color', [0.4 0.4 0.4], 'linestyle', ':', 'MarkerSize', 0.01) ;
 
                 % patterns to memorize
-                l_patterns = plot( obj.patterns, obj.patterns, 'rx', 'linewidth', 2 ) ;
+                l_patterns = plot( obj.patterns, obj.patterns, 'x', 'linewidth', 1.5, 'color', red ) ;
 
                 % yyaxis right
                 % % energy surface
                 % E = obj.energy_2( x ) ;
                 % l_energy = semilogy(x, E, 'linestyle', '-.', 'color', [0.8500, 0.3250, 0.0980], 'linewidth', 1) ;
-                % ylabel('Energy E(x_{k})')
+                % ylabel('Energy $E(x)$', 'interpreter', 'latex', 'fontsize', 14)
 
                 hold off
-                xlabel('x_k')
+                set(gca,'FontSize',12)
+                xlabel('$x^{(k)}$', 'interpreter', 'latex', 'fontsize', 14)
+
                 % axes through origin
                 % axis equal
                 ax = gca;
                 ax.XAxisLocation = 'origin';
                 % ax.YAxisLocation = 'origin';
-                title( obj.name )
+                title( obj.name,'interpreter', 'latex', 'fontsize', 14 )
                 % xlim([-4, 4])
                 % ylim([-4, 4])
-                % legend( [l_patterns, l_update, l_energy, l_identity ], {'Pattern', 'Update equation', 'Energy', 'Identity map'} , 'location', 'northwest')
+                % legend( [l_patterns, l_update, l_energy, l_identity ], ...
+                %           {'Pattern', 'Update equation', 'Energy', 'Identity map'} , ...
+                %           'location', 'northwest', 'interpreter', 'latex', 'fontsize', 12)
 
             % if data is 2 dimensional, visualize vector field with nullclines
             elseif (dim_data==2)
             
                 % energy surface and nullclines
                 wdw = 20 ; % window
-                prec = wdw/20 ;
+                prec = wdw/10 ;
                 x = -wdw:prec:wdw ;
                 y = -wdw:prec:wdw ;
                 [X, Y] = meshgrid(x, y) ;           
@@ -567,7 +537,8 @@ classdef Memory_Model
                 % plot stream lines
                 [~, on] = inpolygon( X(:), Y(:), [min(x), max(x), max(x), min(x)], [min(y), min(y), max(y), max(y)] ) ;
                 % streamline( X, Y, (f1-X), (f2-Y), X(on), Y(on) )
-                streamline( X, Y, (f1-X), (f2-Y), X(1:4:end), Y(1:4:end) )
+                hlines = streamline( X, Y, (f1-X), (f2-Y), X(1:4:end), Y(1:4:end)) ;
+                set(hlines,'LineWidth',1,'Color', orange)
 
                 % simulate model from initial conditions in varargin
                 if (nargin>1)
@@ -575,9 +546,9 @@ classdef Memory_Model
                     p   = obj.simulate( x_k ) ;
                     
                     for i = 1:size(p, 2)
-                        plot(squeeze(p(1, i, :)), squeeze(p(2, i, :)), 'color', [0 0 0], 'linewidth', 1)
+                        plot(squeeze(p(1, i, :)), squeeze(p(2, i, :)), 'color', orange, 'linewidth', 1)
                     end
-                    plot(p(1, :, 1), p(2, :, 1), 'ko')
+                    plot(p(1, :, 1), p(2, :, 1), 'o', 'color', orange, 'linewidth', 1.5)
                 end
 
                 % draw principal component of jacobian in each grid point
@@ -603,21 +574,18 @@ classdef Memory_Model
                 [~, l_nc2] = contour(x, y, Y-f2,[0, 0], 'linewidth', 1, 'color', [0.2, 0.2, 0.2], 'linestyle', ':') ;
 
                 % patterns to memorize
-                l_patterns = plot(obj.patterns(1, :), obj.patterns(2, :), 'rx', 'linewidth', 2) ;
+                l_patterns = plot(obj.patterns(1, :), obj.patterns(2, :), 'x', 'linewidth', 1.5, 'color', red) ;
 
                 hold off
-                xlabel('x_1')
-                ylabel('x_2')
+                set(gca,'FontSize',12)
+                xlabel('$x_1$', 'interpreter', 'latex', 'fontsize', 14)
+                ylabel('$x_2$', 'interpreter', 'latex', 'fontsize', 14)
                 xlim([-wdw, wdw])
                 ylim([-wdw, wdw])
                 % axes through origin
                 axis equal
-                % title( join([ 'p_err = ', num2str(obj.p_err), ...
-                %           ', p_reg = ', num2str(obj.p_reg), ...
-                %           ', p_drv = ', num2str(obj.p_drv) ]))
-                % title( join([ num2str(obj.num_lay), ' layers ', obj.phi{1} ]) )
-                title( obj.name )
-                % legend( [l_patterns, l_nc1, l_nc2], {'Pattern', 'x_1 nullcline', 'x_2 nullcline'}, 'location', 'southwest') ;
+                title( obj.name, 'interpreter', 'latex', 'fontsize', 14 )
+                % legend( [l_patterns, l_nc1, l_nc2], {'Pattern', 'x_1 nullcline', 'x_2 nullcline'}, 'location', 'southwest','interpreter', 'latex', 'fontsize', 12) ;
 
             end
         end
