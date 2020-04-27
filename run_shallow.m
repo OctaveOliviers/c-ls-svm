@@ -1,78 +1,74 @@
 % Created  by OctaveOliviers
 %          on 2020-03-29 17:04:21
 %
-% Modified on 2020-04-11 14:51:48
+% Modified on 2020-04-27 22:38:16
 
 clear all
 clc
 
 % import dependencies
 addpath( './models/' )
-addpath( './support/' )
+addpath( './util/' )
 
 % parameters of patterns
 dim_patterns    = 2 ;
-num_patterns    = 4 ;
-%
+num_patterns    = 100 ;
+scale_patterns  = 15 ; 
+
+% parameters of visualization
 num_test        = 5 ;
 
-% aprameters of model
-% formulation = 'dual' ; feature_map = 'p' ; parameter = [3, 1] ;
-% formulation = 'dual' ; feature_map = 'g' ; parameter = 2 ;
-formulation = 'primal' ; feature_map = 'sign' ; parameter = 0 ;
-% formulation = 'primal' ; feature_map = 'tanh' ; parameter = 0 ;
+% model architecture
 num_layers      = 1 ;
-% hyper-parameters
-p_err           = 1e4 ; % importance of error
-p_reg           = 1e1 ; % importance of regularization
-p_drv           = 1e3 ; % importance of minimizing derivative
+
+% model training
+max_iter        = 3 ;
+alpha           = 1 ;
+
+% create model
+model = Memory_Model( max_iter, alpha ) ;
+
+% hyper-parameters of layer
+p_err = 1e2 ;   % importance of error
+p_reg = 1e-1 ;   % importance of regularization
+p_drv = 1e1 ;   % importance of minimizing derivative
+
+layer_1 = Layer_Dual  ( dim_patterns, p_err, p_drv, p_reg, 'poly', [1, 0] ) ;
+layer_2 = Layer_Primal( dim_patterns, p_err, p_drv, p_reg, 'tanh' ) ;
+
+% model = model.add_layer( { Layer_Primal( dim_patterns, p_err, p_drv, p_reg, 'tanh' ) } ) ;
+model = model.add_layer( { Layer_Dual( dim_patterns, p_err, p_drv, p_reg, 'rbf', 8 ) } ) ;
+%
+% model = model.add_layer( { layer_1, layer_2 } ) ;
 
 % initialize random number generator
 rng(10) ;
 
 % create patterns to memorize
-patterns = 18*rand( dim_patterns, num_patterns ) - 9 ;
-% patterns = -10 : 9 : 10 ;
-% patterns = [0.5*randn(dim_patterns, num_patterns)+[0; -5], ...
-%           0.5*randn(dim_patterns, num_patterns)+[0; +5], ...
-%           0.5*randn(dim_patterns, num_patterns)+[-5;  0], ...
-%           0.5*randn(dim_patterns, num_patterns)+[ 5; 0] ] ;
-% [X, Y] = meshgrid(-6:3:6, -6:3:6) ; patterns = [X(:)' ; Y(:)'] ;
+switch dim_patterns
 
-% means are spread evenly around origin
-% num_groups    = 10 ;
-% z             = exp(i*pi/1)*roots([ 1, zeros(1, num_groups-1), 1]) ;
-% means         = 5*[ real(z), imag(z) ]' ;
-% patterns  = means + randn( dim_patterns, num_groups, num_patterns ) ;
-% labels        = [1:num_groups] .* ones(1, 1, num_patterns) ;
+    case 1
+        patterns = 1.7*[ -4 , -2 , 0.5 , 1 , 3 ] ;
+        % patterns = [ 1 , 4 ] ;
 
-% test contractive training
+    case 2
+        patterns = gen_data_manifold( 's', scale_patterns, num_patterns, 0.5 ) ;
 
-% patterns  = reshape( patterns, [ dim_patterns, num_groups*num_patterns ] ) ;
-
-% build model
-model = build_model( num_layers, formulation, feature_map, parameter, p_err, p_drv, p_reg ) ;
+    otherwise
+        error("Cannot simulate more than 2 dimensions, yet.")
+end
 
 % train model
 model = model.train( patterns ) ;
 
 % visualize model
-% model.visualize( means + 3*randn ) ;
-% test = means + randn(dim_patterns, num_groups, num_test ) ;
-% model.visualize( reshape(test, [dim_patterns, num_groups*num_test] ) ) ;
+model.visualize( ) ;
 
-% num_groups    = 40 ;
-% z             = exp(i*pi/1)*roots([ 1, zeros(1, num_groups-1), 1]) ;
-% test_means    = 3*[ real(z), imag(z) ]' ;
+% model.layers{1}
 
-model.visualize( 10*rand(dim_patterns, 5) - 5 ) ;
+% model.layers{1}.J
 
-% pad = model.simulate( [0; 0] ) ;
-% model.energy(pad)
+% model.layers{1}
 
-% isequal(model.W, model.W')
-
-% check 
-% [E, err, eigv] = model.energy( patterns ) ;
-% err
-% max(eigv, [], 'all')
+% path = model.simulate(0) ;
+% E = model.energy_2(path)
