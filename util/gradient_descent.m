@@ -1,12 +1,12 @@
 % Created  by OctaveOliviers
 %          on 2020-04-16 16:40:59
 %
-% Modified on 2020-04-26 11:05:05
+% Modified on 2020-05-05 18:01:09
 
-function x_opt = gradient_descent( objective_fcn, gradient_fcn, x_0, varargin )
+function [x_opt, varargout] = gradient_descent( objective_fcn, gradient_fcn, x_0, varargin )
 
     if nargin == 3
-        max_itr         = 10 ;
+        max_itr         = 20 ;
         max_back_track  = 15 ;
     elseif nargin == 5
         max_itr         = varargin{1} ;
@@ -24,16 +24,11 @@ function x_opt = gradient_descent( objective_fcn, gradient_fcn, x_0, varargin )
 
         % if the gradient is too small, optimization has converged
         if norm_element(grad) <= 1e-5
-            disp( "Gradient descent" )
-            disp( "found solution after " + num2str(i) + " iterations" )
-            disp( "with gradident size  =  " + num2str( norm_element(grad) ) )
-            disp( "with objective value = " + num2str( objective_fcn(x_opt) ) )
-            disp( "  " )
             break
         end
 
         % backtracking
-        b = 0.001 ; % not unity to break symmetry
+        b = 0.1 ; % not unity to break symmetry
         for k = 1:max_back_track
             % store canditate new solution
             x_c = update_solution( x_opt, b, grad ) ;
@@ -45,27 +40,24 @@ function x_opt = gradient_descent( objective_fcn, gradient_fcn, x_0, varargin )
             else
                 break
             end
-
         end
 
         % did not find better solution
         if ( k == max_back_track )
-            disp( "Gradient descent" )
-            disp( "found solution after " + num2str(i) + " iterations" )
-            disp( "with gradident size  =  " + num2str( norm_element(grad) ) )
-            disp( "with objective value = " + num2str( objective_fcn(x_opt) ) )
-            disp( "  " )
             break
         
         % update the solution
         else
             x_opt    = x_c ;
             obj_best = obj_new ;
-
-            disp( "backtracking with b = " + num2str(b) + " after " + k + " backtracking steps" )
-            disp( "new objective value = " + num2str( objective_fcn(x_opt) ) )
-            disp( " " )
         end
+    end
+
+    if nargout > 1
+        varargout{1} = objective_fcn(x_opt) ;
+    end
+    if nargout > 2
+        varargout{2} = norm_element(grad) ;
     end
 end
 
@@ -102,3 +94,5 @@ function x_new = update_solution( x, b, grad )
         end
     end
 end
+
+

@@ -1,7 +1,7 @@
 % Created  by OctaveOliviers
 %          on 2020-03-15 16:25:40
 %
-% Modified on 2020-04-27 22:30:26
+% Modified on 2020-05-05 15:46:40
 
 classdef Layer_Dual < Layer
     
@@ -126,7 +126,7 @@ classdef Layer_Dual < Layer
                 for p = 1:P
                     PTf = phiTjac( obj.X, X(:, p), obj.phi, obj.theta ) ;
                     FTf = jacTjac( obj.X, X(:, p), obj.phi, obj.theta ) ;
-                    J(:, (p-1)*N_in+1:p*N_in) = - 1/obj.p_reg * ( obj.L_e*PTf + obj.L_d*FTf ) ;
+                    J(:, (p-1)*N_in+1:p*N_in) = 1/obj.p_reg * ( obj.L_e*PTf + obj.L_d*FTf ) ;
                 end
             end
         end
@@ -170,17 +170,6 @@ classdef Layer_Dual < Layer
             % gradient of jacobian
             
             % grad = obj.p_err * dE + obj.p_drv * dJ ;
-        end
-
-
-        % compute gradient of Lagrangian with respect to its input evaluated in columns of Y
-        function grad = gradient_lagrangian_wrt_output(obj)
-
-            % gradient of error
-            grad = obj.p_err * obj.E ;
-
-            % gradient of jacobian
-            % none
         end
 
 

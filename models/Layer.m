@@ -1,7 +1,7 @@
 % Created  by OctaveOliviers
 %          on 2020-04-11 14:59:10
 %
-% Modified on 2020-04-27 22:30:11
+% Modified on 2020-05-05 15:12:51
 
 classdef Layer
 
@@ -52,6 +52,17 @@ classdef Layer
             obj.E = obj.layer_error( obj.X, obj.Y ) ;
             obj.J = obj.layer_jacobian( obj.X ) ;
             obj.L = obj.layer_lagrangian( obj.X, obj.Y ) ;
+        end
+
+
+        % compute gradient of Lagrangian with respect to its input evaluated in columns of Y
+        function grad = gradient_lagrangian_wrt_output(obj)
+
+            % gradient of error
+            grad = obj.p_err * obj.E ;
+
+            % gradient of jacobian
+            % none
         end
     end
 end
