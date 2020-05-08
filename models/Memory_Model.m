@@ -1,7 +1,7 @@
 % Created  by OctaveOliviers
 %          on 2020-03-05 09:54:32
 %
-% Modified on 2020-05-06 21:33:06
+% Modified on 2020-05-08 09:34:50
 
 classdef Memory_Model
 
@@ -72,7 +72,7 @@ classdef Memory_Model
             %   obj.add_layer( layer )
             %
             % of add layer from its parameters
-            %   obj.add_layer( n_out, space, phi, theta, p_err, p_drv, p_reg )
+            %   obj.add_layer( n_out, p_err, p_drv, p_reg, phi, theta )
 
             % append to cell of layers
             if ( nargin < 3 )
@@ -668,16 +668,16 @@ classdef Memory_Model
 
                 % draw principal component of jacobian in each grid point
                 [U, S] = obj.jacobian_singular_values( ) ; 
-                scale = 4 ;
+                scale = 3 ;
                 % arrows in direction largest component
-                l_J_1 = quiver( obj.patterns(1, :), obj.patterns(2, :), scale*S(1, :).*U(1, :, 1), scale*S(1, :).*U(2, :, 1), 'AutoScale', 'off' ) ;
+                l_J_1 = quiver( obj.patterns(1, :), obj.patterns(2, :), scale*U(1, :, 1), scale*U(2, :, 1), 'AutoScale', 'off' ) ;
                 set(l_J_1,'LineWidth',2,'Color', green, 'ShowArrowHead', 'off')
-                l_J_2 = quiver( obj.patterns(1, :), obj.patterns(2, :), -scale*S(1, :).*U(1, :, 1), -scale*S(1, :).*U(2, :, 1), 'AutoScale', 'off' ) ;
+                l_J_2 = quiver( obj.patterns(1, :), obj.patterns(2, :), -scale*U(1, :, 1), -scale*U(2, :, 1), 'AutoScale', 'off' ) ;
                 set(l_J_2,'LineWidth',2,'Color', green, 'ShowArrowHead', 'off')
                 % arrows in direction smallest component
-                l_j_1 = quiver( obj.patterns(1, :), obj.patterns(2, :), scale*S(2, :).*U(1, :, 2), scale*S(2, :).*U(2, :, 2), 'AutoScale', 'off' ) ;
+                l_j_1 = quiver( obj.patterns(1, :), obj.patterns(2, :), scale*U(1, :, 2), scale*U(2, :, 2), 'AutoScale', 'off' ) ;
                 set(l_j_1,'LineWidth',2,'Color', red, 'ShowArrowHead', 'off')
-                l_j_2 = quiver( obj.patterns(1, :), obj.patterns(2, :), -scale*S(2, :).*U(1, :, 2), -scale*S(2, :).*U(2, :, 2), 'AutoScale', 'off' ) ;
+                l_j_2 = quiver( obj.patterns(1, :), obj.patterns(2, :), -scale*U(1, :, 2), -scale*U(2, :, 2), 'AutoScale', 'off' ) ;
                 set(l_j_2,'LineWidth',2,'Color', red, 'ShowArrowHead', 'off')
 
                 % plot histogram of singular values
@@ -688,7 +688,7 @@ classdef Memory_Model
                 % [~, l_nc2] = contour(x, y, Y-f2,[0, 0], 'linewidth', 1, 'color', [0.2, 0.2, 0.2], 'linestyle', ':') ;
 
                 % patterns to memorize
-                l_patterns = plot(obj.patterns(1, :), obj.patterns(2, :), '.', 'MarkerSize', 15, 'color', orange) ;
+                l_patterns = plot(obj.patterns(1, :), obj.patterns(2, :), '.', 'MarkerSize', 20, 'color', orange) ;
 
                 % show generated samples
                 if nargin >= 4 && ~isempty(varargin{3})

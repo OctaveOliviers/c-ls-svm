@@ -1,7 +1,7 @@
 % Created  by OctaveOliviers
 %          on 2020-03-29 17:04:32
 %
-% Modified on 2020-05-06 21:38:07
+% Modified on 2020-05-08 08:34:14
 
 % Compare the capacity of several feature maps
 
@@ -48,7 +48,7 @@ for d = 1:max_dim
 end
 
 
-figure( 'position', [100, 100, 300, 285] )
+figure( 'position', [100, 100, 600, 285] )
 set(groot, 'DefaultAxesTickLabelInterpreter', 'latex')
 % subplot(1, 2, 1)
 % box on
@@ -73,7 +73,7 @@ plot(1:max_dim, cap_hopfld, 'linestyle', '-', 'linewidth', 1) ;
 hold off
 set(gca, 'YScale', 'log', 'FontSize',12)
 legend( [flip(names), 'Hopfield'], 'location', 'eastoutside', 'interpreter', 'latex', 'fontsize', 12 )
-xlabel( 'Network size N', 'FontSize', 14, 'interpreter', 'latex', 'fontsize', 14 )
+xlabel( 'Network size $N$', 'FontSize', 14, 'interpreter', 'latex', 'fontsize', 14 )
 ylabel( 'Network capacity $P_c$', 'FontSize', 14, 'interpreter', 'latex', 'fontsize', 14 )
 title( {'The capacity of a network', 'strongly depends on its feature map'}, 'interpreter', 'latex', 'fontsize', 14 )
 %
@@ -95,7 +95,7 @@ function cap = run_one_test( num_layers, space, fun, param, dim, tol )
     err_rate  = 0 ;
 
     % create model
-    p_err     = 1e2 ; % importance of error
+    p_err     = 1e4 ; % importance of error
     p_reg     = 1e-2 ; % importance of regularization
     p_drv     = 1e2 ; % importance of minimizing derivative
 
@@ -111,18 +111,17 @@ function cap = run_one_test( num_layers, space, fun, param, dim, tol )
     end
     
 
-    while true
+    for d = 1:2^dim-1
 
         % append new data point
-        data( :, end+1 ) = 2*randi( [0, 1], dim, 1 ) - 1 ;
-        % update tolerance as tol*
-        % tol = tol_dist*min(  ) ;
+        data( :, end+1 ) = 2*randi( [0, 1], dim,  010) - 1 ;
 
         % train model
         model = model.train( data ) ;
 
         % stop if error on one pattern is too large
-        err = model.E ;
+        err = model.E 
+        vecnorm(err)
         if ( max( vecnorm(err), [], 'all' ) >= tol )
             break
         end
@@ -133,12 +132,8 @@ function cap = run_one_test( num_layers, space, fun, param, dim, tol )
             break
         end
 
-        % avoid being trapped forever
-        if size(data, 2)>10*dim
-            break
-        end
     end
 
     cap = size(data, 2)-1 ;
     
-end
+end4

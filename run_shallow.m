@@ -1,7 +1,7 @@
 % Created  by OctaveOliviers
 %          on 2020-03-29 17:04:21
 %
-% Modified on 2020-05-06 18:06:13
+% Modified on 2020-05-08 08:35:46
 
 clear all
 clc
@@ -82,8 +82,8 @@ model.visualize( [],[] ) ;
 
 
 % plot singular values of jacobian
-[U, S] = model.jacobian_singular_values() ;
-plot_singular_values( S ) ;
+% [U, S] = model.jacobian_singular_values() ;
+% plot_singular_values( S ) ;
 
 % model.layers{1}
 
