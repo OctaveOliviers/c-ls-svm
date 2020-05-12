@@ -1,7 +1,7 @@
 % Created  by OctaveOliviers
 %          on 2020-03-05 09:54:32
 %
-% Modified on 2020-05-12 07:57:52
+% Modified on 2020-05-12 08:44:45
 
 classdef Memory_Model
 
@@ -14,7 +14,7 @@ classdef Memory_Model
         layers              % cell containg each layer
         % training parameters
         max_iter            % maximum number of iterations during implicit training
-        alpha               % learning rate for gradient descent in hidden states
+        alpha               % learning rate for gradient descent in hidden states % not implemented yet
         max_back_track = 30 % maximum number of back tracking in gradient descent
         max_opt        = 20 % maximum number of newton steps to update hidden states
         % results of optimization process
@@ -390,12 +390,12 @@ classdef Memory_Model
             % allocate memory
             grad = H ;
             
-            % compute gradietn wrt each hidden state
+            % compute gradient wrt each hidden state
             for l = obj.num_lay-1:-1:1
                 % gradient wrt layer l
-                dL_l   = obj.layers{l}.gradient_lagrangian_wrt_output(  ) ;
+                dL_l   = obj.layers{l}.gradient_lagrangian_wrt_output( H{l} ) ;
                 % gradient wrt layer l+1
-                dL_lp1 = obj.layers{l+1}.gradient_lagrangian_wrt_input(  ) ;
+                dL_lp1 = obj.layers{l+1}.gradient_lagrangian_wrt_input( H{l} ) ;
                 
                 grad( l ) = { dL_l + dL_lp1 } ;                
             end

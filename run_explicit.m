@@ -1,7 +1,7 @@
 % Created  by OctaveOliviers
 %          on 2020-05-11 17:32:47
 %
-% Modified on 2020-05-11 19:51:33
+% Modified on 2020-05-12 08:42:49
 
 % Created  by OctaveOliviers
 %          on 2020-03-29 17:04:21
@@ -22,7 +22,7 @@ addpath( './util/' )
 dim_patterns    = 2 ;
 dim_hidden      = 3 ;
 num_patterns    = 20 ;
-num_groups      = 6 ;
+num_groups      = 3 ;
 scale_patterns  = 15 ; 
 shape_patterns  = 'g' ;
 
@@ -55,7 +55,7 @@ means       = scale_patterns*[ real(z), imag(z) ]' ;
 memories    = means + 2*randn( dim_patterns, num_groups, num_patterns ) ;
 % choose hidden representations as vertices of 3D unit cube
 hiddens     = cell(1, num_layers-1) ;
-[x, y]   = ndgrid(-1:2:1) ;
+[x, y, z]   = ndgrid(-1:2:1) ;
 labels      = [ x(1:num_groups) ; y(1:num_groups)].* ones(1, 1, num_patterns) ;
 
 memories    = reshape( memories, [ dim_patterns, num_groups*num_patterns ] ) ;

@@ -1,7 +1,7 @@
 % Created  by OctaveOliviers
 %          on 2020-03-15 16:25:40
 %
-% Modified on 2020-05-11 17:56:21
+% Modified on 2020-05-12 08:44:46
 
 classdef Layer_Primal < Layer
     
@@ -79,27 +79,12 @@ classdef Layer_Primal < Layer
         end
 
 
-        % error of model E = X - W' * phi(X) - B
-        function E = layer_error(obj, varargin)
-            % X     states to compute error in
-
-            % compute error of model
-            if (nargin<2)
-                E = obj.E ;
-
-            % compute error in new point
-            elseif ( nargin == 3 )
-                E = varargin{2} - obj.simulate_one_step( varargin{1} ) ;
-            end
-        end
-
-
         % error of model J = - W' * J_phi(X)
         function J = layer_jacobian(obj, varargin)
             % X     states to compute Jacobian in as columns
 
             % compute jacobian of model
-            if ( nargin < 2 )
+            if ( nargin == 1 )
                 J = obj.J ;
 
             % compute jacobian in new point
@@ -135,21 +120,26 @@ classdef Layer_Primal < Layer
 
 
         % compute gradient of Lagrangian with respect to its input evaluated in columns of X
-        function grad = gradient_lagrangian_wrt_input(obj)
+        function grad = gradient_lagrangian_wrt_input(obj, X)
+
+            % extract useful parameters
+            [N, P] = size(X) ;
 
             % gradient of error
-            dE = zeros(obj.N_in, obj.P) ;
-            for p = 1:obj.P
-                dE(:, p) = obj.J(:, 1+(p-1)*obj.N_in:p*obj.N_in)' * obj.E(:, p) ;
+            dE = zeros(N, P) ;
+            E  = obj.Y - obj.simulate_one_step( X ) ;
+            J  = obj.layer_jacobian( X ) ;
+            for p = 1:P
+                dE(:, p) = J(:, 1+(p-1)*N:p*N)' * E(:, p) ;
             end
 
             % gradient of jacobian
-            dJ  = zeros(obj.N_in, obj.P) ;
+            dJ = zeros(N, P) ;
             % 3D hessian
-            Hes = hes( obj.X, obj.phi, obj.theta ) ;
-            for p = 1:obj.P
-                for n = 1:obj.N_in
-                    dJ(n, p) = trace( squeeze(Hes(:, n+(p-1)*obj.N_in, :)) * obj.W * obj.J(:, 1+(p-1)*obj.N_in:p*obj.N_in) ) ;
+            H  = hes( X, obj.phi, obj.theta ) ;
+            for p = 1:P
+                for n = 1:N
+                    dJ(n, p) = trace( squeeze(H(:, n+(p-1)*N, :)) * obj.W * obj.J(:, 1+(p-1)*N:p*N) ) ;
                 end
             end
 

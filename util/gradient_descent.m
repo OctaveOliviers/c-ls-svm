@@ -1,7 +1,7 @@
 % Created  by OctaveOliviers
 %          on 2020-04-16 16:40:59
 %
-% Modified on 2020-05-12 07:53:30
+% Modified on 2020-05-12 08:44:43
 
 function [x_opt, varargout] = gradient_descent( objective_fcn, gradient_fcn, x_0, varargin )
 
@@ -20,9 +20,9 @@ function [x_opt, varargout] = gradient_descent( objective_fcn, gradient_fcn, x_0
     % start gradient descent steps
     for i = 1:max_itr
        
-        grad = gradient_fcn( x_opt ) 
+        grad = gradient_fcn( x_opt ) ;
 
-        % if the gradient is too small, optimization has converged
+        % if the gradient is small, optimization has converged
         if norm_element(grad) <= 1e-5
             break
         end
