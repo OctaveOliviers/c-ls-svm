@@ -1,7 +1,7 @@
 % Created  by OctaveOliviers
 %          on 2020-04-11 14:59:10
 %
-% Modified on 2020-05-08 10:20:30
+% Modified on 2020-05-08 15:16:53
 
 classdef Layer
 
@@ -63,6 +63,16 @@ classdef Layer
 
             % gradient of jacobian
             % none
+        end
+
+
+        % chekch if model is trained
+        function bool = is_trained(obj)
+
+            % either primal or dual parameters are non empty
+            bool =  ( ~isempty(obj.W) && ~isempty(obj.b) ) ...
+                 || ( ~isempty(obj.L_e) && ~isempty(obj.L_d) && ~isempty(obj.b) ) ;
+
         end
     end
 end

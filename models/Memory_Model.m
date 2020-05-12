@@ -1,7 +1,7 @@
 % Created  by OctaveOliviers
 %          on 2020-03-05 09:54:32
 %
-% Modified on 2020-05-08 09:34:50
+% Modified on 2020-05-12 07:57:52
 
 classdef Memory_Model
 
@@ -43,6 +43,10 @@ classdef Memory_Model
             elseif (nargin==1)
                 obj.layers    = varargin{1} ;
                 obj.num_lay   = length(obj.layers) ;
+                % if layers are already trained store their patterns
+                if prod( cellfun(@is_trained, varargin{1}) )
+                    obj.patterns = varargin{1}{1}.X 
+                end
                 %
                 obj.max_iter  = 10 ;
                 obj.alpha     = .01 ;
@@ -72,17 +76,21 @@ classdef Memory_Model
             %   obj.add_layer( layer )
             %
             % of add layer from its parameters
-            %   obj.add_layer( n_out, p_err, p_drv, p_reg, phi, theta )
+            %   obj.add_layer( space, n_out, p_err, p_drv, p_reg, phi, theta )
 
             % append to cell of layers
-            if ( nargin < 3 )
+            if ( nargin == 2 )
                 num_new_lay = length(varargin{1}) ;
                 obj.layers(end+1:end+num_new_lay) = varargin{1} ;
+
+                if prod( cellfun(@is_trained, varargin{1}) ) && isempty(obj.patterns) && (obj.num_lay==0)
+                    obj.patterns = varargin{1}{1}.X 
+                end
+
             else
                 switch varargin{1}
                     case {"primal", "p"}
                         obj.layers{end+1} = Layer_Primal( varargin{2:end} ) ;
-                        obj.layers{end}.n_in = obj.layers{end-1}.n_out ;
 
                     case {"dual", "d"}
                         obj.layers{end+1} = Layer_Dual( varargin{2:end} ) ;
@@ -104,25 +112,38 @@ classdef Memory_Model
             % start     matrix with start positions to simulate from as columns
             % varargin  (1) array of starting values to compute update equation
 
-            % variable to store evolution of state
-            path = zeros( [size(start), 2]) ;
-            path(:, :, 1) = start ;
-
+            % useful variables
+            N = size(start, 1) ;
+            
             % initialize variables
             x_old = start ;
-            x_new = simulate_one_step(obj, x_old) ;
-            path(:, :, 2) = x_new ;
+            max_steps = 50 ;
 
-            % update state untill it has converged
-            while (norm(x_old-x_new) >= 1e-3)
-                x_old = x_new ;
-                x_new = simulate_one_step(obj, x_old) ;
-                path(:, :, end+1) = x_new ;
+            % variable to store evolution of state
+            path = zeros( [size(start), max_steps] ) ;
+            path(:, :, 1) = x_old ;
 
-                if norm(x_new)>10*max(vecnorm(obj.patterns))
+            % update state until it has converged
+            for i = 2:max_steps
+                x_new = obj.simulate_one_step(x_old) ;
+                path(:, :, i) = x_new ;
+
+                norm(x_old-x_new, 1)
+                % check for convergence
+                if norm(x_old-x_new, 1) <= N*1e-3
                     break
                 end
+                % avoid divergence
+                if norm(x_new)>10*max(vecnorm(obj.patterns))
+                    disp("Simulation diverged.")
+                    break
+                end
+
+                x_old = x_new ;                
             end
+
+            % remove all the zero columns in path
+            path(:,:, ~any(path,[1 2])) = [] ;
 
             % visualize the update map f(x) of the layer
             if (nargin>2)
@@ -256,7 +277,7 @@ classdef Memory_Model
 
             % if deep model
             else
-                if ( nargin > 2 )
+                if ( nargin == 3 ) && ~isempty(varargin{1})
                     % varargin{1} contains the explicit hidden states
                     obj = train_explicit( obj, X, varargin{1} ) ;
                 else
@@ -308,7 +329,7 @@ classdef Memory_Model
             % initialize each hidden state randomly
             % [H{:}] = deal( X ) ;
             for l = 1:obj.num_lay-1
-               H(l) = { randn( obj.layers{l}.N_out, P ) } ;
+               H(l) = { X + randn( obj.layers{l}.N_out, P ) } 
             end
 
             % keep track of evolution through parameter space
@@ -349,7 +370,7 @@ classdef Memory_Model
                 end
                 L_old = L ;
 
-                % obj.visualize() ;
+                % visualize_lagrange_surface( obj, H, obj.gradient_lagrangian_wrt_H(H) ) ;
                 % pause(2)
 
             end
@@ -369,12 +390,12 @@ classdef Memory_Model
             % allocate memory
             grad = H ;
             
-            % compute gradient wrt each hidden state
+            % compute gradietn wrt each hidden state
             for l = obj.num_lay-1:-1:1
                 % gradient wrt layer l
-                dL_l   = obj.layers{l}.gradient_lagrangian_wrt_output() ;
+                dL_l   = obj.layers{l}.gradient_lagrangian_wrt_output(  ) ;
                 % gradient wrt layer l+1
-                dL_lp1 = obj.layers{l+1}.gradient_lagrangian_wrt_input() ;
+                dL_lp1 = obj.layers{l+1}.gradient_lagrangian_wrt_input(  ) ;
                 
                 grad( l ) = { dL_l + dL_lp1 } ;                
             end
@@ -475,7 +496,7 @@ classdef Memory_Model
                 % compute model jacobian
                 J = obj.model_jacobian( x_0 ) ;
                 % move along manifold
-                samples(:, t) = obj.simulate_one_step( x_0 ) + J*noise;
+                samples(:, t) = obj.simulate_one_step( x_0 ) + J * noise;
 
                 x_0 = samples(:, t) ;
             end
@@ -483,8 +504,61 @@ classdef Memory_Model
         end
 
 
+        % walk on manifold between two points
+        function path = walk_on_manifold(obj, x_start, x_end, step_size)
+
+            % extract parameters
+            N = size(x_start, 1) ;
+
+            % maximum allowed number of steps
+            max_steps = 100 ;
+            % path between points
+            path = zeros(N, max_steps) ;
+
+            % initialize walk
+            % current position
+            x = x_start ;
+            % direction to go
+            dir = (x_end - x) ;
+
+            % take steps on manifold
+            for k = 1:max_steps
+                % store position
+                path(:, k) = x ;
+
+                % update position
+                x = obj.one_step_on_manifold( x, dir/norm(dir), step_size ) ;
+                % update direction
+                dir = (x_end - x) ;
+                norm(dir)
+
+                % check for converfence
+                if norm(dir) < 5*1e-1
+                    break
+                end
+            end
+
+            % remove all the zero columns in path
+            path( :, ~any(path,1) ) = [];
+        end
+
+
+        % walk on manifold between two points
+        function x_new = one_step_on_manifold(obj, x, dir, step_size)
+
+            % check correctness of inputs
+            assert( length(x) == length(dir), "Dimension of direction does not match dimension of state space." )
+
+            % jacobian of model in current position
+            J = obj.model_jacobian( x ) ;
+
+            % update position
+            x_new = obj.simulate_one_step(x) + step_size * J * dir ;
+        end
+
+
         % compute k largest singular triplets of jacobian in a set of points
-        function [U, S] = jacobian_singular_values(obj, varargin)
+        function [U, S] = jacobian_SVD(obj, varargin)
 
             % all singular triplets of stored patterns
             if nargin == 1
@@ -497,7 +571,7 @@ classdef Memory_Model
                 [N, P] = size( obj.patterns ) ;
                 k = varargin{1} ;
             % only k largest singular triplets innew data points
-            elseif nargin == 2
+            elseif nargin == 3
                 J = obj.J ;
                 [N, P] = size( varargin{2} ) ;
                 k = varargin{1} ;
@@ -519,6 +593,43 @@ classdef Memory_Model
         end
 
 
+        % visualize distribution of singular values
+        function [mean_s, std_s] = plot_jacobian_SVD(obj)
+
+            [U, S] = obj.jacobian_SVD( ) ;
+
+            mean_s = mean( S' ) ;
+            std_s  = std( S' ) ;
+
+            % colors
+            orange = [230, 135, 28]/255 ;
+            KUL_blue = [0.11,0.55,0.69] ;
+            green = [58, 148, 22]/255 ;
+            red = [194, 52, 52]/255 ;
+            C = [ green ; red ; KUL_blue ; orange ] ;
+
+            % plot singular values
+            % create figure box
+            figure('position', [300, 500, 300, 285])
+            set(gcf,'renderer','Painters')
+            % figure('position', [300, 500, 170, 160])
+            set(groot, 'DefaultAxesTickLabelInterpreter', 'latex')
+            box on
+            hold on
+            %
+            plot( 1:length(mean_s), mean_s, '-s', 'color', red)
+            % plot + - 1 std
+            plot( 1:length(mean_s), mean_s + std_s, ':', 'color', red)
+            plot( 1:length(mean_s), mean_s - std_s, ':', 'color', red)
+            %
+            hold off
+            xlim([ 1 length(mean_s) ])
+            set(gca,'FontSize',12)
+            xlabel('\# singular values', 'interpreter', 'latex', 'fontsize', 14)
+            ylabel('Jacobian singular values', 'interpreter', 'latex', 'fontsize', 14)
+        end
+
+
         % visualize dynamical model
         function visualize(obj, varargin)
             % varargin      (1) start positions to simulate model from
@@ -537,7 +648,7 @@ classdef Memory_Model
             red = [194, 52, 52]/255 ;
 
             % create figure box
-            figure('position', [300, 500, 300, 285])
+            figure('position', [500, 700, 300, 285])
             % figure('position', [300, 500, 170, 160])
             set(groot, 'DefaultAxesTickLabelInterpreter', 'latex')
             box on
@@ -571,7 +682,7 @@ classdef Memory_Model
                 % end
 
                 % simulate model from initial conditions in varargin
-                if (nargin>1)
+                if (nargin>1) && ~isempty(varargin{1})
                     x_k = varargin{1} ; 
                     p   = obj.simulate( x_k ) ;
                     
@@ -666,19 +777,19 @@ classdef Memory_Model
                     l_man = plot(manifold(1, :), manifold(2, :), '--', 'color', [0.5, 0.5, 0.5], 'linewidth', 1) ;
                 end
 
-                % draw principal component of jacobian in each grid point
-                [U, S] = obj.jacobian_singular_values( ) ; 
-                scale = 3 ;
-                % arrows in direction largest component
-                l_J_1 = quiver( obj.patterns(1, :), obj.patterns(2, :), scale*U(1, :, 1), scale*U(2, :, 1), 'AutoScale', 'off' ) ;
-                set(l_J_1,'LineWidth',2,'Color', green, 'ShowArrowHead', 'off')
-                l_J_2 = quiver( obj.patterns(1, :), obj.patterns(2, :), -scale*U(1, :, 1), -scale*U(2, :, 1), 'AutoScale', 'off' ) ;
-                set(l_J_2,'LineWidth',2,'Color', green, 'ShowArrowHead', 'off')
-                % arrows in direction smallest component
-                l_j_1 = quiver( obj.patterns(1, :), obj.patterns(2, :), scale*U(1, :, 2), scale*U(2, :, 2), 'AutoScale', 'off' ) ;
-                set(l_j_1,'LineWidth',2,'Color', red, 'ShowArrowHead', 'off')
-                l_j_2 = quiver( obj.patterns(1, :), obj.patterns(2, :), -scale*U(1, :, 2), -scale*U(2, :, 2), 'AutoScale', 'off' ) ;
-                set(l_j_2,'LineWidth',2,'Color', red, 'ShowArrowHead', 'off')
+                % % draw principal component of jacobian in each grid point
+                % [U, S] = obj.jacobian_singular_values( ) ; 
+                % scale = 3 ;
+                % % arrows in direction largest component
+                % l_J_1 = quiver( obj.patterns(1, :), obj.patterns(2, :), scale*U(1, :, 1), scale*U(2, :, 1), 'AutoScale', 'off' ) ;
+                % set(l_J_1,'LineWidth',2,'Color', green, 'ShowArrowHead', 'off')
+                % l_J_2 = quiver( obj.patterns(1, :), obj.patterns(2, :), -scale*U(1, :, 1), -scale*U(2, :, 1), 'AutoScale', 'off' ) ;
+                % set(l_J_2,'LineWidth',2,'Color', green, 'ShowArrowHead', 'off')
+                % % arrows in direction smallest component
+                % l_j_1 = quiver( obj.patterns(1, :), obj.patterns(2, :), scale*U(1, :, 2), scale*U(2, :, 2), 'AutoScale', 'off' ) ;
+                % set(l_j_1,'LineWidth',2,'Color', red, 'ShowArrowHead', 'off')
+                % l_j_2 = quiver( obj.patterns(1, :), obj.patterns(2, :), -scale*U(1, :, 2), -scale*U(2, :, 2), 'AutoScale', 'off' ) ;
+                % set(l_j_2,'LineWidth',2,'Color', red, 'ShowArrowHead', 'off')
 
                 % plot histogram of singular values
                 % plot_singular_values( S(:) ) ;
@@ -695,6 +806,13 @@ classdef Memory_Model
                     samples = varargin{3} ;
                     % plot(samples(1, :), samples(2, :), '-', 'color', green)
                     plot(samples(1, :), samples(2, :), '.', 'MarkerSize', 10, 'color', green)
+                end
+
+                % show walk on manifold
+                if nargin >= 5 && ~isempty(varargin{4})
+                    walk = varargin{4} ;
+                    plot(walk(1, :), walk(2, :), '-', 'color', red, 'Linewidth', 1.5)
+                    % plot(walk(1, :), walk(2, :), '.', 'MarkerSize', 10, 'color', KUL_blue)
                 end
                 
                 hold off

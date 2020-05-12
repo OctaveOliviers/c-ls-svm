@@ -1,7 +1,7 @@
 % Created  by OctaveOliviers
 %          on 2020-03-15 16:25:40
 %
-% Modified on 2020-05-05 15:51:04
+% Modified on 2020-05-11 17:56:21
 
 classdef Layer_Primal < Layer
     
@@ -21,7 +21,7 @@ classdef Layer_Primal < Layer
             % X         patterns to memorize
             % varargin  contains Y to map patterns X to (for stacked architectures)
             
-            if ( nargin<3 )
+            if ( nargin<3 ) || isempty(varargin{1})
                 Y = X ;
 
                 % check correctness of input
@@ -128,7 +128,7 @@ classdef Layer_Primal < Layer
                 J = obj.layer_jacobian( X ) ;
 
                 L = obj.p_err/2 * trace( E' * E ) + ...         % error term
-                    obj.p_drv/2 * trace( J' * J ) + ...         % derivative term
+                    obj.p_drv/2 * trace( J * J' ) + ...         % derivative term ( tr(AB) = tr(BA) )
                     obj.p_reg/2 * trace( obj.W' * obj.W ) ;     % regularization term
             end
         end

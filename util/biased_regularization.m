@@ -1,13 +1,13 @@
 % Created  by OctaveOliviers
 %          on 2020-05-04 21:41:11
 %
-% Modified on 2020-05-04 22:50:55
+% Modified on 2020-05-10 23:07:06
 
 clear all
 clc
 
 num = 5 ;
-typ = 'med' ;
+typ = 'neg' ;
 
 % create data set
 switch typ
@@ -52,21 +52,21 @@ ylim([ min(phi_X(2, :))-2 max(phi_X(2, :))+2])
 xticks([ sort( unique(phi_X(1, :))) ])
 yticks([ sort( unique(phi_X(2, :))) ])
 set(gca,'FontSize',12)
-xlabel('$\varphi_1(x)$', 'interpreter', 'latex', 'fontsize', 14)
-ylabel('$\varphi_2(x)$', 'interpreter', 'latex', 'fontsize', 14)
+xlabel('$\varphi_1(x)$ = $x$', 'interpreter', 'latex', 'fontsize', 14)
+ylabel('$\varphi_2(x)$ = $x^2$', 'interpreter', 'latex', 'fontsize', 14)
 % legend( [line_log, point_start, line_path], {"$r \; x^{(k)} \; (1-x^{(k)})$", "Starting point", "Movement"} , 'location', 'northwest', 'interpreter', 'latex', 'fontsize', 12)
 % title( strcat('\textbf{Logistic map} ($r$= ', num2str(r) ,')'),'interpreter', 'latex', 'fontsize', 14)
 
 
 % visualize ellipse
-lim = 10 ;
+lim = 2 ;
 figure('position', [100, 100, 170, 160])
 set(groot, 'DefaultAxesTickLabelInterpreter', 'latex')
 grid on ;
 box on ;
 hold on ;
 % plot covariance matrix
-h = error_ellipse( S )
+h = error_ellipse( S^-1 )
 set( h, 'LineWidth', 2, 'Color', orange )
 hold off ;
 xlim([ -lim lim ])

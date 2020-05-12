@@ -1,7 +1,7 @@
 % Created  by OctaveOliviers
 %          on 2020-03-29 16:54:38
 %
-% Modified on 2020-04-27 22:21:42
+% Modified on 2020-05-08 15:05:59
 
 % compute Hessian of each component of the feature map in each pattern
 %   input
@@ -23,10 +23,18 @@ function H = hes( patterns, type, varargin )
 
         case 'tanh'
             H = zeros( N, N*P, N ) ;
+            % indices of diagonal elements in (N x N x N) matrix
+            diag_idx = 1:(P*N^2+N+1):((N-1)*P*N^2+(N-1)*N+N) ;
             for p=1:P
-                for d = 1:N
-                    H(d, d+(p-1)*N, d) = -2 * tanh( patterns(d, p) ) * ( 1 - tanh( patterns(d, p) )^2 ) ; 
-                end
+                H( (p-1)*N^2 + diag_idx ) = -2 * tanh( patterns(:, p) ) .* ( 1 - tanh( patterns(:, p) ).^2 ) ;
+            end
+
+        case 'sigmoid'
+            H = zeros( N, N*P, N ) ;
+            % indices of diagonal elements in (N x N x N) matrix
+            diag_idx = 1:(P*N^2+N+1):((N-1)*P*N^2+(N-1)*N+N) ;
+            for p=1:P
+                H( (p-1)*N^2 + diag_idx ) = sigmoid(patterns(:, p)) .* ( 1 - sigmoid(patterns(:, p)) ) .* ( 1 - 2*sigmoid(patterns(:, p)) ) ;
             end
 
         case 'sign'

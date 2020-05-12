@@ -1,7 +1,7 @@
 % Created  by OctaveOliviers
 %          on 2020-03-29 16:54:35
 %
-% Modified on 2020-04-27 22:20:40
+% Modified on 2020-05-08 15:06:01
 
 % compute Jacobian matrix in each pattern as long matrix
 %   input
@@ -16,7 +16,7 @@
 function J = jac( patterns, type, varargin )
 
     % extract useful parameters
-    [N, P] = size(patterns);
+    [N, P] = size(patterns) ;
 
     type = lower(type);
     switch type
@@ -29,6 +29,12 @@ function J = jac( patterns, type, varargin )
 
         case 'sign'
             J = zeros( N, N*P ) ;
+
+        case 'sigmoid'
+            J = zeros( N, N*P ) ;
+            for p=1:P
+                J(:, (p-1)*N+1:p*N) = diag( sigmoid(patterns(:, p)).*(1 - sigmoid(patterns(:, p))) ) ; 
+            end
             
     end
 end

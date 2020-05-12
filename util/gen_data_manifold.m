@@ -1,7 +1,7 @@
 % Created  by OctaveOliviers
 %          on 2020-04-14 15:23:37
 %
-% Modified on 2020-05-06 09:47:24
+% Modified on 2020-05-08 21:07:46
 
 % Generate data points that lie along a manifold in 2D
 
@@ -34,7 +34,7 @@ function data = gen_data_manifold( shape, scale, number, noise )
 
         case 's'
             c = gen_data_manifold( 'c', scale/2, floor(number/2), noise ) ;
-            data = [ c + [ 0 ; abs(min(c(2, :)))] , fliplr(-c - [ 0 ; abs(max(c(2, :)))]) ] ;
+            data = [ c + [ 0 ; abs(min(c(2, :)))] , fliplr(-c - [ 0 ; abs(min(c(2, :)))]) ] ;
 
         case 'x'
             c1 = gen_data_manifold( 'c', scale, floor(number/2), noise ) ;

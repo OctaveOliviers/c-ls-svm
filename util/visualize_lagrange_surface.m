@@ -1,7 +1,7 @@
 % Created  by OctaveOliviers
 %          on 2020-04-14 17:40:10
 %
-% Modified on 2020-04-27 22:38:20
+% Modified on 2020-05-08 15:34:34
 
 function visualize_lagrange_surface( obj, H, step )
 
@@ -10,7 +10,7 @@ function visualize_lagrange_surface( obj, H, step )
     % only for model with 2 layers, and 2 1D-patterns to memorize
     assert( obj.num_lay == 2 )
     assert( size(obj.patterns, 1) == 1 )
-    assert( size(obj.patterns, 2) == 2 )
+    % assert( size(obj.patterns, 2) == 2 )
 
     % extract useful parameters
     X = obj.patterns ;
