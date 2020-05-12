@@ -1,7 +1,7 @@
 % Created  by OctaveOliviers
 %          on 2020-03-15 16:25:40
 %
-% Modified on 2020-05-11 18:11:14
+% Modified on 2020-05-12 08:44:48
 
 classdef Layer_Dual < Layer
     
@@ -86,21 +86,6 @@ classdef Layer_Dual < Layer
             obj = obj.store_lagrange_param() ;
 
             % disp("model trained in dual")
-        end
-
-
-        % error of model E = X - W' * phi(X) - B
-        function E = layer_error(obj, varargin)
-            % X     states to compute error in
-
-            % compute error of model
-            if ( nargin == 1 )
-                E = obj.E ;
-
-            % compute error in new point
-            elseif ( nargin == 3 )
-                E = varargin{2} - obj.simulate_one_step( varargin{1} ) ;
-            end
         end
 
 

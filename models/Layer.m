@@ -1,7 +1,7 @@
 % Created  by OctaveOliviers
 %          on 2020-04-11 14:59:10
 %
-% Modified on 2020-05-08 15:16:53
+% Modified on 2020-05-12 08:42:56
 
 classdef Layer
 
@@ -55,11 +55,32 @@ classdef Layer
         end
 
 
-        % compute gradient of Lagrangian with respect to its input evaluated in columns of Y
-        function grad = gradient_lagrangian_wrt_output(obj)
+        % error of model E = Y - W' * phi(X) - B
+        function E = layer_error(obj, varargin)
+            % X     states to compute error in
+
+            % compute error of model
+            if (nargin==1)
+                E = obj.E ;
+
+            % % compute error for new output target
+            % if (nargin==2)
+            %     E = varargin{1} - obj.simulate_one_step( obj.X ) ;
+
+            % compute error in new point input-output pair
+            elseif ( nargin == 3 )
+                E = varargin{2} - obj.simulate_one_step( varargin{1} ) ;
+            end
+        end
+
+
+        % compute gradient of Lagrangian with respect to its output evaluated in columns of Y
+        function grad = gradient_lagrangian_wrt_output(obj, Y)
+
+            E = Y - obj.simulate_one_step( obj.X ) ;
 
             % gradient of error
-            grad = obj.p_err * obj.E ;
+            grad = obj.p_err * E ;
 
             % gradient of jacobian
             % none
