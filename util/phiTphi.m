@@ -1,7 +1,7 @@
 % Created  by OctaveOliviers
 %          on 2020-03-28 11:22:11
 %
-% Modified on 2020-04-27 22:20:00
+% Modified on 2020-05-12 17:05:58
 
 % compute kernel matrix (similarity measure) 
 %       m = phi(x)^T * phi(y) 

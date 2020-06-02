@@ -1,7 +1,7 @@
 % Created  by OctaveOliviers
 %          on 2020-03-29 16:54:35
 %
-% Modified on 2020-05-08 15:06:01
+% Modified on 2020-05-12 10:56:32
 
 % compute Jacobian matrix in each pattern as long matrix
 %   input
@@ -34,6 +34,12 @@ function J = jac( patterns, type, varargin )
             J = zeros( N, N*P ) ;
             for p=1:P
                 J(:, (p-1)*N+1:p*N) = diag( sigmoid(patterns(:, p)).*(1 - sigmoid(patterns(:, p))) ) ; 
+            end
+
+        case 'linear_phi'
+            J = zeros( N, N*P ) ;
+            for p=1:P
+                J(:, (p-1)*N+1:p*N) = eye(N) ; 
             end
             
     end

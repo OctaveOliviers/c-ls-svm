@@ -1,7 +1,7 @@
 % Created  by OctaveOliviers
 %          on 2020-03-28 11:22:11
 %
-% Modified on 2020-05-09 14:54:31
+% Modified on 2020-05-12 09:33:52
 
 % select the k data points closest to the mean of each cluster
 %
@@ -43,9 +43,9 @@ function [protos, sorted_labels] = select_means(data, labels, k, d_measure, vara
 
         % compute similarity between mean and each cluster element
         D = phiTphi( mean_l, data_l, d_measure, varargin{:} ) ;
-        disp("label "+ num2str( uni_labels(i) ) )
-        disp("  min "+ num2str( min(D)) )
-        disp("  max "+ num2str( max(D)) )
+        % disp("label "+ num2str( uni_labels(i) ) )
+        % disp("  min "+ num2str( min(D)) )
+        % disp("  max "+ num2str( max(D)) )
 
         % fill prototypes
         [~, order]      = sort(D) ;

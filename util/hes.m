@@ -1,7 +1,7 @@
 % Created  by OctaveOliviers
 %          on 2020-03-29 16:54:38
 %
-% Modified on 2020-05-08 15:05:59
+% Modified on 2020-05-12 10:56:26
 
 % compute Hessian of each component of the feature map in each pattern
 %   input
@@ -36,6 +36,9 @@ function H = hes( patterns, type, varargin )
             for p=1:P
                 H( (p-1)*N^2 + diag_idx ) = sigmoid(patterns(:, p)) .* ( 1 - sigmoid(patterns(:, p)) ) .* ( 1 - 2*sigmoid(patterns(:, p)) ) ;
             end
+
+        case 'linear_phi'
+            H = zeros( N, N*P, N ) ;
 
         case 'sign'
             H = zeros( N, N*P, N ) ;

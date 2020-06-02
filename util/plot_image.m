@@ -1,7 +1,7 @@
 % Created  by OctaveOliviers
 %          on 2020-03-29 19:34:42
 %
-% Modified on 2020-04-27 22:19:41
+% Modified on 2020-05-12 09:55:38
 
 % from https://github.com/brendenlake/omniglot/tree/master/matlab
 
@@ -16,5 +16,5 @@ function plot_image(img, size_image, name)
     xlim([1 size_image]);
     ylim([1 size_image]);
     axis equal;
-    title(name)
+    % title(name, 'interpreter', 'latex', 'fontsize', 14)
 end

@@ -1,11 +1,11 @@
 % Created  by OctaveOliviers
 %          on 2020-05-06 09:59:42
 %
-% Modified on 2020-05-06 21:10:18
+% Modified on 2020-06-01 21:57:13
 
 % Make histogram of singular values of jacobian
 function plot_singular_values( sv )
-    % sv    matrix of size (k x P)      k singular values fpr P points
+    % sv    matrix of size (k x P)      k singular values for P points
 
     % colors
     orange = [230, 135, 28]/255 ;
@@ -35,5 +35,6 @@ function plot_singular_values( sv )
     xlabel('Value of $\sigma_1$ (green) and $\sigma_2$ (red)', 'interpreter', 'latex', 'fontsize', 14)
     ylabel('Count', 'interpreter', 'latex', 'fontsize', 14)
     yticks([])
+    % xlim([0, 1])
 
 end

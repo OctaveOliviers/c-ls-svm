@@ -1,7 +1,7 @@
 % Created  by OctaveOliviers
 %          on 2020-03-05 09:54:32
 %
-% Modified on 2020-05-12 08:44:45
+% Modified on 2020-06-02 17:45:20
 
 classdef Memory_Model
 
@@ -117,7 +117,7 @@ classdef Memory_Model
             
             % initialize variables
             x_old = start ;
-            max_steps = 50 ;
+            max_steps = 30 ;
 
             % variable to store evolution of state
             path = zeros( [size(start), max_steps] ) ;
@@ -347,7 +347,7 @@ classdef Memory_Model
             L_old = inf ;
             for i = 1:obj.max_iter
 
-                % train deep model using the Method of Alternating Coordinates
+                % train deep model using the Method of Auxiliary Coordinates
                 % https://arxiv.org/abs/1212.5921
 
                 % update weights with convex optimization
@@ -511,7 +511,7 @@ classdef Memory_Model
             N = size(x_start, 1) ;
 
             % maximum allowed number of steps
-            max_steps = 100 ;
+            max_steps = 15 ;
             % path between points
             path = zeros(N, max_steps) ;
 
@@ -531,6 +531,8 @@ classdef Memory_Model
                 % update direction
                 dir = (x_end - x) ;
                 norm(dir)
+
+                % x = x + dir/(max_steps-5) ;
 
                 % check for converfence
                 if norm(dir) < 5*1e-1
@@ -777,22 +779,19 @@ classdef Memory_Model
                     l_man = plot(manifold(1, :), manifold(2, :), '--', 'color', [0.5, 0.5, 0.5], 'linewidth', 1) ;
                 end
 
-                % % draw principal component of jacobian in each grid point
-                % [U, S] = obj.jacobian_singular_values( ) ; 
-                % scale = 3 ;
-                % % arrows in direction largest component
-                % l_J_1 = quiver( obj.patterns(1, :), obj.patterns(2, :), scale*U(1, :, 1), scale*U(2, :, 1), 'AutoScale', 'off' ) ;
-                % set(l_J_1,'LineWidth',2,'Color', green, 'ShowArrowHead', 'off')
-                % l_J_2 = quiver( obj.patterns(1, :), obj.patterns(2, :), -scale*U(1, :, 1), -scale*U(2, :, 1), 'AutoScale', 'off' ) ;
-                % set(l_J_2,'LineWidth',2,'Color', green, 'ShowArrowHead', 'off')
-                % % arrows in direction smallest component
-                % l_j_1 = quiver( obj.patterns(1, :), obj.patterns(2, :), scale*U(1, :, 2), scale*U(2, :, 2), 'AutoScale', 'off' ) ;
-                % set(l_j_1,'LineWidth',2,'Color', red, 'ShowArrowHead', 'off')
-                % l_j_2 = quiver( obj.patterns(1, :), obj.patterns(2, :), -scale*U(1, :, 2), -scale*U(2, :, 2), 'AutoScale', 'off' ) ;
-                % set(l_j_2,'LineWidth',2,'Color', red, 'ShowArrowHead', 'off')
-
-                % plot histogram of singular values
-                % plot_singular_values( S(:) ) ;
+                % draw principal component of jacobian in each grid point
+                [U, S] = obj.jacobian_SVD( ) ; 
+                scale = 3 ;
+                % arrows in direction largest component
+                l_J_1 = quiver( obj.patterns(1, :), obj.patterns(2, :), scale*U(1, :, 1), scale*U(2, :, 1), 'AutoScale', 'off' ) ;
+                set(l_J_1,'LineWidth',2,'Color', green, 'ShowArrowHead', 'off')
+                l_J_2 = quiver( obj.patterns(1, :), obj.patterns(2, :), -scale*U(1, :, 1), -scale*U(2, :, 1), 'AutoScale', 'off' ) ;
+                set(l_J_2,'LineWidth',2,'Color', green, 'ShowArrowHead', 'off')
+                % arrows in direction smallest component
+                l_j_1 = quiver( obj.patterns(1, :), obj.patterns(2, :), scale*U(1, :, 2), scale*U(2, :, 2), 'AutoScale', 'off' ) ;
+                set(l_j_1,'LineWidth',2,'Color', red, 'ShowArrowHead', 'off')
+                l_j_2 = quiver( obj.patterns(1, :), obj.patterns(2, :), -scale*U(1, :, 2), -scale*U(2, :, 2), 'AutoScale', 'off' ) ;
+                set(l_j_2,'LineWidth',2,'Color', red, 'ShowArrowHead', 'off')
 
                 % nullclines
                 % [~, l_nc1] = contour(x, y, X-f1,[0, 0], 'linewidth', 1, 'color', [0.2, 0.2, 0.2], 'linestyle', '--') ;
@@ -815,6 +814,7 @@ classdef Memory_Model
                     % plot(walk(1, :), walk(2, :), '.', 'MarkerSize', 10, 'color', KUL_blue)
                 end
                 
+
                 hold off
                 set(gca,'FontSize',12)
                 xlabel('$x_1$', 'interpreter', 'latex', 'fontsize', 14)
@@ -824,13 +824,16 @@ classdef Memory_Model
                 % xticks([])
                 % yticks([])
                 % axes through origin
-                % axis equal
+                axis equal
                 % title( obj.name, 'interpreter', 'latex', 'fontsize', 14 )
                 % legend( [l_patterns, l_nc1, l_nc2], {'Pattern', '$x_1$ nullcline', '$x_2$ nullcline'}, 'location', 'southwest','interpreter', 'latex', 'fontsize', 12) ;
                 % title( "Vector field learned by contractive autoencoder", 'interpreter', 'latex', 'fontsize', 14 )
                 % legend( [l_patterns, l_man, qui, l_J_2], ...
                 %         {'Data point $\mathbf{x}_p$', 'Manifold', 'Vectorfield', "Principal direction of jacobian"}, ...
                 %         'location', 'southwest','interpreter', 'latex', 'fontsize', 12) ;
+
+                % plot histogram of singular values
+                plot_singular_values( S ) ;
 
             end
         end

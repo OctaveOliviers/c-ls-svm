@@ -1,7 +1,7 @@
 % Created  by OctaveOliviers
 %          on 2020-03-29 17:06:12
 %
-% Modified on 2020-05-09 08:23:56
+% Modified on 2020-05-12 09:20:19
 
 clear all
 clc
@@ -13,19 +13,19 @@ addpath( './util/' )
 
 % parameters of data set
 siz_train       = 50 ;
-siz_load        = 10000 ;
+siz_load        = 1000 ;
 siz_val         = 100 ;
 siz_test        = 1000 ; 
 num_protos      = floor(siz_train/10) ;       % number of prototypes to select for each label
 % parameters of model
 num_layers      = 1 ;
-formulation     = { 'dual' } ; 
-dim_layer       = { 400 } ;
-feature_map     = { 'rbf' } ; 
-parameter       = { 50 } ;
-p_err           = { 1e3 } ;  % importance of error
-p_reg           = { 1e-2 } ;  % importance of regularization200
-p_drv           = { 1e1 } ;  % importance of minimizing derivative
+formulation     = { 'dual', 'primal' } ; 
+dim_layer       = { 400 , 400 } ;
+feature_map     = { 'rbf', 'tanh' } ; 
+parameter       = { 20, 30 } ;
+p_err           = { 1e2,  1e2 } ;  % importance of error
+p_drv           = { 1e2,  1e2 } ;  % importance of minimizing derivative
+p_reg           = { 1e-2, 1e-2 } ;  % importance of regularization200
 % parameters of training
 k_cross_val     = 10 ;
 % parameters of testing
@@ -80,7 +80,7 @@ disp("data loaded")
 % end
 
 % select means of each group
-[patterns, labels] = select_means( img_train, lab_train, num_protos, 'rbf', 10 ) ;
+% [patterns, labels] = select_means( img_train, lab_train, num_protos, 'rbf', 10 ) ;
 
 % select principal components
 % sig = 0.1 ;
@@ -96,7 +96,14 @@ disp("data loaded")
 % end
 % sgtitle( num2str(sig) )
 
-patterns = reshape( patterns, [num_neurons, num_protos*size(patterns, 3)] ) ;
+% patterns = reshape( patterns, [num_neurons, num_protos*size(patterns, 3)] ) ;
+
+
+% select number
+selected = 6 ;
+idx = find( lab_train == selected ) ;
+patterns = img_train( :, idx(1:siz_train) ) ;
+
 disp("patterns selected")
 
 %% compute L2 distance between selected patterns
@@ -135,6 +142,7 @@ model = model.train( patterns ) ;
 %% test on new image
 % select test image 
 random_idx = randi(siz_test) ;
+% random_idx = 32 ;
 test_x     = img_test(:, random_idx) ;
 test_y     = lab_test(random_idx) ;
 
@@ -178,8 +186,9 @@ disp(" ")
 %% test on corrupted image from training set
 
 random_idx = randi(siz_train) ;
+% random_idx = 26 ;
 test_x     = patterns(:, random_idx) + 1*randn(400, 1) ;
-test_y     = labels(random_idx) ;
+% test_y     = labels(random_idx) ;
 
 path = model.simulate(test_x(:)) ;
 num_steps = size(path, 3) ;
@@ -187,40 +196,62 @@ num_steps = size(path, 3) ;
 % store closest index (L1 distance)
 dist = phiTphi(patterns, path(:, 1, end), 'L1') ;
 [~,  closest_idx] = sort(dist) ;
-found_label = mode( labels( closest_idx(1:num_to_avg_over) ) ) ;
+% found_label = mode( labels( closest_idx(1:num_to_avg_over) ) ) ;
+
+size_x = 150 ;
+size_y = 150 ;
 
 % PLOT results
-max_steps_show = 5 ;
+max_steps_show = 3 ;
 num_plots = min(num_steps + 3, max_steps_show + 3);
 % plot images as [test, step i, closest to]
-figure('position', [200, 200, 800, 200])
+figure('position', [200, 200, size_x, size_y])
+% set(gcf,'renderer','Painters')
+% set(groot, 'DefaultAxesTickLabelInterpreter', 'latex')
+
 % original image
-subplot(1, num_plots, 1)
+% subplot(1, num_plots, 1)
 plot_image(patterns(:, random_idx), size_image, "original")
 xlim([1 size_image]) ;
 ylim([1 size_image]) ;
+
 % corrupted image
-subplot(1, num_plots, 2)
+% subplot(1, num_plots, 2)
+figure('position', [200, 200, size_x, size_y])
 plot_image(test_x(:), size_image, "corrupted")
 xlim([1 size_image]) ;
 ylim([1 size_image]) ;
-    
+
+% first step
+figure('position', [200, 200, size_x, size_y])
+plot_image( path(:, 1, 2), size_image, "step 1")
+
 for i = 1:num_plots-3
-    name = "step " + num2str(i*max(1, floor((num_steps-1)/max_steps_show))) ;
-    subplot(1, num_plots, i+2)
+    figure('position', [200, 200, size_x, size_y])
+    name = "step " + num2str(i*max(1, floor((num_steps-1)/max_steps_show))) 
+%     subplot(1, num_plots, i+2)
     plot_image( path(:, 1,  i*max(1, floor((num_steps-1)/max_steps_show))), size_image, name)
     xlim([1 size_image]) ;
     ylim([1 size_image]) ;
+%     pos = get(gca, 'Position');
+%     pos(1) = 0.055;
+%     pos(3) = 0.9;
+%     set(gca, 'Position', pos)
 end
 
-subplot(1, num_plots, num_plots)
-plot_image( patterns(:, closest_idx(1)), size_image, "closest to")
+figure('position', [200, 200, size_x, size_y])
+% subplot(1, num_plots, num_plots)
+plot_image( path(:, 1, end), size_image, "reconstruction")
 xlim([1 size_image]) ;
 ylim([1 size_image]) ;
-
-disp("original image was           : " + num2str(test_y))
-disp("final state closest to image : " + num2str(found_label))
-disp(" ")
+% pos = get(gca, 'Position');
+% pos(1) = 0.055;
+% pos(3) = 0.9;
+% set(gca, 'Position', pos)
+    
+% disp("original image was           : " + num2str(test_y))
+% disp("final state closest to image : " + num2str(found_label))
+% disp(" ")
 
 %% walk on manifold from one pattern to another
 
@@ -259,7 +290,9 @@ ylim([1 size_image]) ;
 num_sv_to_plot = 5 ;
 
 % choose image
-img = patterns( :, randi(siz_train) ) ;
+rand_idx = randi(siz_train) ;
+% rand_idx = 39 ;
+img = patterns( :, rand_idx ) ;
 
 [U, S] = model.jacobian_SVD( num_sv_to_plot, img ) ;
 
@@ -287,7 +320,8 @@ for i = 1:num_sv_to_plot
     ylim([1 size_image]) ;
 end
 
-% move point a little bit in direction of vector 2
+% move point a little bit in direction of vector
+which_sv = 1 ;
 % PLOT results
 figure('position', [200, 200, 800, 200])
 % start image
@@ -298,11 +332,57 @@ ylim([1 size_image]) ;
 % plot singular vectors
 for i = 1:num_sv_to_plot
     % rescale vector to make it visible
-    dx = i*1 ;
+    dx = i*5 ;
     subplot(1, num_sv_to_plot+1, i+1)
-    plot_image( img + dx*U(:, 1, 1), size_image, strcat("new point with Dx = ", num2str(dx)))
+    plot_image( img - dx*U(:, 1, which_sv), size_image, strcat("new point with Dx = ", num2str(dx)))
     xlim([1 size_image]) ;
     ylim([1 size_image]) ;
 end
 
+
+
+%% generate images on manifold
+
+num_gen_to_plot = 10 ;
+
+% choose image
+% rand_idx = randi(siz_train) ;
+rand_idx = 39 ;
+img = patterns( :, rand_idx ) ;
+
+gen = model.generate( img, 10*num_gen_to_plot, 10 ) ;
+
+size_x = 150 ;
+size_y = 150 ;
+
+% PLOT results
+% figure('position', [200, 200, 800, 200])
+
+% start image
+% subplot(1, num_gen_to_plot+1, 1)
+figure('position', [200, 200, size_x, size_y])
+plot_image(img, size_image, "state")
+xlim([1 size_image]) ;
+ylim([1 size_image]) ;
+
+
+% generated images
+for i = 1:num_gen_to_plot
+    name = "generated " + num2str(i) ;
+    figure('position', [200, 200, size_x, size_y])
+%     subplot(1, num_gen_to_plot+1, i+1)
+    plot_image( gen(:, end-9*i), size_image, name)
+    xlim([1 size_image]) ;
+    ylim([1 size_image]) ;
+end
+
+
+%% clean up generate memory
+
+path_y = model.simulate( gen(:, end) ) ;
+
+figure('position', [200, 200, size_x, size_y])
+plot_image( path_y(:, end), size_image, "corrupted")
+xlim([1 size_image]) ;
+ylim([1 size_image]) ;
 
