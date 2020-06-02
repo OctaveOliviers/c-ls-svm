@@ -1,7 +1,7 @@
 % Created  by OctaveOliviers
 %          on 2020-03-05 09:54:32
 %
-% Modified on 2020-06-02 18:07:24
+% Modified on 2020-06-02 18:07:46
 
 classdef CLSSVM
 

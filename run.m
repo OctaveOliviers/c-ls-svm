@@ -1,7 +1,7 @@
 % Created  by OctaveOliviers
 %          on 2020-03-29 17:04:21
 %
-% Modified on 2020-06-02 17:28:08
+% Modified on 2020-06-02 18:08:39
 
 clear all
 clc
@@ -15,7 +15,7 @@ addpath( './util/' )
 
 % parameters of patterns
 dim_patterns    = 2 ;
-num_patterns    = 100 ;
+num_patterns    = 10 ;
 scale_patterns  = 17 ; 
 shape_patterns  = 'S' ;
 
@@ -30,7 +30,7 @@ max_iter        = 30 ;
 alpha           = 0.01 ;
 
 % create model
-model = Memory_Model( max_iter, alpha ) ;
+model = CLSSVM( max_iter, alpha ) ;
 
 % hyper-parameters of layer
 p_err_1 = 1e2 ;   % importance of error
@@ -42,7 +42,7 @@ p_drv_2 = 1e2 ;   % importance of minimizing derivative
 p_reg_2 = 1e-2 ;   % importance of regularization
 
 % model = model.add_layer( 'primal', dim_patterns, p_err_1, p_drv_1, p_reg_1, 'tanh' ) ;
-model = model.add_layer( 'dual', dim_patterns, p_err_1, p_drv_1, p_reg_1, 'rbf', 4 ) ;
+model = model.add_layer( 'dual', dim_patterns, p_err_1, p_drv_1, p_reg_1, 'rbf', 8 ) ;
 
 % % create deep model
 % % layer_1 = Layer_Dual  ( 3*dim_patterns, p_err_1, p_drv_1, p_reg_1, 'poly', [3, 1]) ;
@@ -65,7 +65,7 @@ switch dim_patterns
 
     case 2
         % memories = [scale_patterns/2; 0] + gen_data_manifold( shape_patterns, scale_patterns, num_patterns, 0.5 ) ;
-        memories = gen_data_manifold( shape_patterns, scale_patterns, num_patterns, 0.5 ) ;
+        memories = gen_data_manifold( shape_patterns, scale_patterns, num_patterns, 0 ) ;
         % memories = 5 * randn(dim_patterns, num_patterns) ;
         % manifold = gen_data_manifold( shape_patterns, scale_patterns, 50, 0 ) ;
 
