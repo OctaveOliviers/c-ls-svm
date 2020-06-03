@@ -1,5 +1,5 @@
 # Master Thesis
-## Deep Contractive Least Squares Support Vector Machines for associative memory
+# Deep Contractive Least Squares Support Vector Machines for associative memory
 
 This code is free to use and modify. 
 
@@ -52,6 +52,7 @@ You can keep adding as many layers as you need by repeating the previous command
 The memories are defined by two parameters:
 1. the dimension of the input space `dim_memos` (integer) ;
 1. the number of memories to store `num_memos` (integer).
+
 The sofware assumes that the matrix of memories is of size (`dim_memos`, `num_memos`)
 
 You can either use you own memories, e.g.
@@ -79,7 +80,7 @@ If the C-LS-SVM contains `L` layers, there are two alternatives to train the mod
 ##### 1. Explicitly assigning the hidden states
 Define a cell `H` that contains the `L-1` hidden states, and train the model as follows
 ```
-model = model.train_explicit( memories, H) ;
+model = model.train_explicit( memories, H ) ;
 ```
 The model automatically assigns the states in the first and last layers to the memories to store.
 
@@ -97,7 +98,7 @@ The generation process consists of a random walk on the data manifold. Therefore
 1. the step size of the random walk `step_size` (float).
 
 ```
-gen_memos = model.generate( start_pos, num_gen, step_size) ;
+gen_memos = model.generate( start_pos, num_gen, step_size ) ;
 ```
 
 ### Visualize a C-LS-SVM
@@ -159,4 +160,5 @@ model.visualize( [], [], gen_memos ) ;
 ```
 
 This small piece of code generates two images, namely
-![alt text](https://github.com/OctaveOliviers/master-thesis/blob/master/demo-out-1.jpg?raw=true)
+![alt text](https://github.com/OctaveOliviers/master-thesis/blob/master/figs/demo-out-1.jpg)
+![alt text](https://github.com/OctaveOliviers/master-thesis/blob/master/figs/demo-out-2.jpg)
