@@ -9,10 +9,12 @@ This code is free to use and modify.
     
         pear_group11$ cd software 
         software$ git clone https://gitlab.com/libeigen/eigen.git 
-          
-### Title 3
-#### Title 4
-##### Title 5
-Open a command line window in the root directory and use the following command. 
+
+
+### Build a C-LS-SVM
+
+
+### Train a C-LS-SVM 
+
 
     some code test 
