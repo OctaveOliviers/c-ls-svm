@@ -1,7 +1,7 @@
 % Created  by OctaveOliviers
 %          on 2020-03-15 16:25:40
 %
-% Modified on 2020-06-01 21:40:38
+% Modified on 2020-06-03 18:40:57
 
 classdef Layer_Dual < Layer
     

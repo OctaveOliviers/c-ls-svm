@@ -1,7 +1,7 @@
 % Created  by OctaveOliviers
 %          on 2020-03-05 09:54:32
 %
-% Modified on 2020-06-02 18:07:46
+% Modified on 2020-06-03 19:05:37
 
 classdef CLSSVM
 
@@ -402,16 +402,11 @@ classdef CLSSVM
         end
         
 
-        % test for energy function
-        function [E, varargout] = energy_2(obj, X)
-
-            E = obj.model_lagrangian( X ) ;
-
-        end
-
         % compute energy in state X
         function [E, varargout] = energy(obj, X)
             % X     states to compute energy, error and eigenvalues for in columns
+
+            warning("Energy function is not correct")
 
             assert( obj.num_lay == 1, "Energy function not yet implemented for deep models." )
 
@@ -511,7 +506,7 @@ classdef CLSSVM
             N = size(x_start, 1) ;
 
             % maximum allowed number of steps
-            max_steps = 15 ;
+            max_steps = 20 ;
             % path between points
             path = zeros(N, max_steps) ;
 
@@ -530,9 +525,6 @@ classdef CLSSVM
                 x = obj.one_step_on_manifold( x, dir/norm(dir), step_size ) ;
                 % update direction
                 dir = (x_end - x) ;
-                norm(dir)
-
-                % x = x + dir/(max_steps-5) ;
 
                 % check for converfence
                 if norm(dir) < 5*1e-1
@@ -632,7 +624,7 @@ classdef CLSSVM
         end
 
 
-        % visualize dynamical model
+        % visualize model
         function visualize(obj, varargin)
             % varargin      (1) start positions to simulate model from
 
@@ -731,8 +723,8 @@ classdef CLSSVM
 
             % if data is 2 dimensional, visualize vector field with nullclines
             elseif (dim_data==2)
-            
-                % energy surface and nullclines
+         
+                % parameters of the plot   
                 wdw = 20 ; % window
                 prec = wdw/10 ;
                 x = -wdw:prec:wdw ;
@@ -742,24 +734,10 @@ classdef CLSSVM
                 F = obj.simulate_one_step( [ X(:)' ; Y(:)' ] ) ;
                 f1 = reshape( F(1, :), [length(x), length(y)] ) ;
                 f2 = reshape( F(2, :), [length(x), length(y)] ) ;
-                % E = obj.energy( [ X(:)' ; Y(:)' ] ) ;
-                % E = reshape( E, [length(x), length(y)]) ;
-
-                % scale = 1 ;
-                % % normalize the vectors
-                % U = (f1-X) ./ vecnorm( f1-X ) ;
-                % V = (f2-Y) ./ vecnorm( f2-Y ) ;
-                % qui = quiver( X, Y, U, V ) ;
-                % set(qui,'LineWidth',1,'Color', KUL_blue)
-                % hs = get(qui,'MaxArrowSize');
-                % set(qui,'MaxArrowSize',hs/10)
-                % contour(x, y, E) ;
 
                 % plot stream lines
                 [~, on] = inpolygon( X(:), Y(:), [min(x), max(x), max(x), min(x)], [min(y), min(y), max(y), max(y)] ) ;
-                % hlines = streamline( X, Y, (f1-X), (f2-Y), X(on), Y(on) ) ;
                 hlines = streamslice( X, Y, (f1-X), (f2-Y), 0.5) ;
-                % hlines = streamline( X, Y, (f1-X), (f2-Y), X(1:2:end), Y(1:2:end)) ;
                 set(hlines,'LineWidth',0.5,'Color', KUL_blue)
 
                 % simulate model from initial conditions in varargin
@@ -779,19 +757,19 @@ classdef CLSSVM
                     l_man = plot(manifold(1, :), manifold(2, :), '--', 'color', [0.5, 0.5, 0.5], 'linewidth', 1) ;
                 end
 
-                % draw principal component of jacobian in each grid point
-                [U, S] = obj.jacobian_SVD( ) ; 
-                scale = 3 ;
-                % arrows in direction largest component
-                l_J_1 = quiver( obj.patterns(1, :), obj.patterns(2, :), scale*U(1, :, 1), scale*U(2, :, 1), 'AutoScale', 'off' ) ;
-                set(l_J_1,'LineWidth',2,'Color', green, 'ShowArrowHead', 'off')
-                l_J_2 = quiver( obj.patterns(1, :), obj.patterns(2, :), -scale*U(1, :, 1), -scale*U(2, :, 1), 'AutoScale', 'off' ) ;
-                set(l_J_2,'LineWidth',2,'Color', green, 'ShowArrowHead', 'off')
-                % arrows in direction smallest component
-                l_j_1 = quiver( obj.patterns(1, :), obj.patterns(2, :), scale*U(1, :, 2), scale*U(2, :, 2), 'AutoScale', 'off' ) ;
-                set(l_j_1,'LineWidth',2,'Color', red, 'ShowArrowHead', 'off')
-                l_j_2 = quiver( obj.patterns(1, :), obj.patterns(2, :), -scale*U(1, :, 2), -scale*U(2, :, 2), 'AutoScale', 'off' ) ;
-                set(l_j_2,'LineWidth',2,'Color', red, 'ShowArrowHead', 'off')
+                % % draw principal component of jacobian in each grid point
+                % [U, S] = obj.jacobian_SVD( ) ; 
+                % scale = 3 ;
+                % % arrows in direction largest component
+                % l_J_1 = quiver( obj.patterns(1, :), obj.patterns(2, :), scale*U(1, :, 1), scale*U(2, :, 1), 'AutoScale', 'off' ) ;
+                % set(l_J_1,'LineWidth',2,'Color', green, 'ShowArrowHead', 'off')
+                % l_J_2 = quiver( obj.patterns(1, :), obj.patterns(2, :), -scale*U(1, :, 1), -scale*U(2, :, 1), 'AutoScale', 'off' ) ;
+                % set(l_J_2,'LineWidth',2,'Color', green, 'ShowArrowHead', 'off')
+                % % arrows in direction smallest component
+                % l_j_1 = quiver( obj.patterns(1, :), obj.patterns(2, :), scale*U(1, :, 2), scale*U(2, :, 2), 'AutoScale', 'off' ) ;
+                % set(l_j_1,'LineWidth',2,'Color', red, 'ShowArrowHead', 'off')
+                % l_j_2 = quiver( obj.patterns(1, :), obj.patterns(2, :), -scale*U(1, :, 2), -scale*U(2, :, 2), 'AutoScale', 'off' ) ;
+                % set(l_j_2,'LineWidth',2,'Color', red, 'ShowArrowHead', 'off')
 
                 % nullclines
                 % [~, l_nc1] = contour(x, y, X-f1,[0, 0], 'linewidth', 1, 'color', [0.2, 0.2, 0.2], 'linestyle', '--') ;
