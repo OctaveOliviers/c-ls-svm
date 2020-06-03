@@ -3,18 +3,36 @@
 
 This code is free to use and modify. 
 
-### Installation
-#### Needed software:
-- Matlab (https://www.mathworks.com/products/matlab.html). 
-    
-        pear_group11$ cd software 
-        software$ git clone https://gitlab.com/libeigen/eigen.git 
+### Background
+
+A C-LS-SVM si a dynamical system
 
 
-### Build a C-LS-SVM
+### Software
+
+#### Requirements
+
+- Matlab (https://www.mathworks.com/products/matlab.html).
 
 
-### Train a C-LS-SVM 
+#### Build a C-LS-SVM
+
+A C-LS-SVM model consists of several layers.
 
 
-    some code test 
+
+#### Train a C-LS-SVM 
+
+##### Explicitly assigning the hidden states
+
+    some code test
+
+##### Implicitly learning the hidden states with the parameters
+
+     some code test
+
+
+
+#### Visualize a C-LS-SVM
+
+Once the 
