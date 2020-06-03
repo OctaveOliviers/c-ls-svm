@@ -160,5 +160,6 @@ model.visualize( [], [], gen_memos ) ;
 ```
 
 This small piece of code generates two images, namely
-![alt text](https://github.com/OctaveOliviers/master-thesis/blob/master/figs/demo-out-1.jpg)
-![alt text](https://github.com/OctaveOliviers/master-thesis/blob/master/figs/demo-out-2.jpg)
+| **Trained model** |  **Generated samples** |
+:-------------------------:|:-------------------------:
+![](https://github.com/OctaveOliviers/master-thesis/blob/master/figs/demo-out-1.jpg)  |  ![](https://github.com/OctaveOliviers/master-thesis/blob/master/figs/demo-out-2.jpg)
