@@ -126,11 +126,11 @@ which will show the memories in the state space, and the dynamics that the C-LS-
 
 To see the generated data samples, run
 ```
-    model = model.visualize( [], [], gen_memos  ) ;
+    model = model.visualize( [], [], gen_memos ) ;
 ```
 and to see the walk on the manifold, run
 ```
-    model = model.visualize( [], [], [], walk  ) ;
+    model = model.visualize( [], [], [], walk ) ;
 ```
 
 ### Demo
