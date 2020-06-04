@@ -1,9 +1,9 @@
 % Created  by OctaveOliviers
 %          on 2020-03-29 17:04:32
 %
-% Modified on 2020-05-12 14:36:00
+% Modified on 2020-06-04 12:48:55
 
-% Compare the capacity of several feature maps
+% Experiment to compare the capacity of several feature maps
 
 clear all
 clc
@@ -50,6 +50,8 @@ end
 
 figure( 'position', [100, 100, 600, 285] )
 set(groot, 'DefaultAxesTickLabelInterpreter', 'latex')
+
+% plot capacity on linear scale
 % subplot(1, 2, 1)
 % box on
 % hold on
@@ -62,7 +64,8 @@ set(groot, 'DefaultAxesTickLabelInterpreter', 'latex')
 % xlabel( 'Network size N', 'FontSize', 12 )
 % ylabel( 'Network capacity P_c', 'FontSize', 12 )
 % title( 'Linear scale', 'FontSize', 12 )
-%
+
+% plot capacity on logarithmic scale
 % subplot(1, 2, 2)
 box on
 hold on
@@ -100,7 +103,7 @@ function cap = run_one_test( num_layers, space, fun, param, dim, tol )
     p_drv     = 1e2 ; % importance of minimizing derivative
 
     % create model
-    model = Memory_Model( ) ;
+    model = CLSSVM( ) ;
     model = model.add_layer( space, dim, p_err, p_drv, p_reg, fun, param ) ;
 
     for d = 1:2^dim
@@ -114,8 +117,6 @@ function cap = run_one_test( num_layers, space, fun, param, dim, tol )
         model = model.train( data(:, 1:d) ) ;
 
         % stop if error on one pattern is too large
-        % err = model.E 
-        % vecnorm(err)
         err = data(:, 1:d) - sign( model.simulate_one_step(data(:, 1:d)) ) ;
         if ( max( vecnorm(err), [], 'all' ) >= tol )
             break
@@ -129,6 +130,6 @@ function cap = run_one_test( num_layers, space, fun, param, dim, tol )
 
     end
 
-    cap = d ; %size(data, 2)-1 ;
+    cap = d ;
     
 end

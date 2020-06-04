@@ -1,7 +1,7 @@
 % Created  by OctaveOliviers
 %          on 2020-06-03 18:10:23
 %
-% Modified on 2020-06-03 19:11:25
+% Modified on 2020-06-04 13:15:07
 
 % Demo for building and training a one-layered C-LS-SVM
 
@@ -17,7 +17,7 @@ rng(10) ;
 
 % parameters of memories
 dim_memos       = 2 ;
-num_memos       = 100 ;
+num_memos       = 250 ;
 scale_memos     = 17 ; 
 shape_memos     = 'S' ;
 noise_memos     = 0.5 ;
@@ -26,10 +26,10 @@ noise_memos     = 0.5 ;
 space           = 'dual' ;          % space to train layer
 dim_input       = dim_memos ;       % dimension of the input space
 hp_equi         = 1e2 ;             % importance of equilibrium objective
-hp_stab         = 1e1 ;             % importance of local stability objective
+hp_stab         = 1e2 ;             % importance of local stability objective
 hp_reg          = 1e-2 ;            % importance of regularization
 feat_map        = 'rbf' ;           % chosen feature map or kernel function
-feat_map_param  = 4 ;               % parameter of feature map or kernel function
+feat_map_param  = 8 ;               % parameter of feature map or kernel function
 
 
 % define the model
@@ -54,3 +54,12 @@ gen_memos   = model.generate( memories( :, randi([ 1, num_memos ]) ), num_gen, s
 
 % visualize generated data points
 model.visualize( [], [], gen_memos ) ;
+
+% walk on manifold
+start_walk = [0; -16] ;
+end_walk   = [0; 16] ;
+step_size  = 1 ;
+walk = model.walk_on_manifold( start_walk, end_walk, step_size ) ;
+
+% visualize model
+model.visualize( [], [] , [] , walk ) ;

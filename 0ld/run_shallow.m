@@ -1,7 +1,7 @@
 % Created  by OctaveOliviers
 %          on 2020-03-29 17:04:21
 %
-% Modified on 2020-05-09 08:58:22
+% Modified on 2020-06-04 13:10:52
 
 clear all
 clc
@@ -30,7 +30,7 @@ max_iter        = 15 ;
 alpha           = 1 ;
 
 % create model
-model = Memory_Model( max_iter, alpha ) ;
+model = CLSSVM( max_iter, alpha ) ;
 
 % hyper-parameters of layer
 p_err = 1e2 ;   % importance of error
@@ -53,29 +53,17 @@ model = model.add_layer( { Layer_Dual( dim_patterns, p_err, p_drv, p_reg, 'rbf',
 switch dim_patterns
 
     case 1
-        % patterns = [ -2, 8] ;
         patterns = [ -8, -7, -1,-2, 7,8 ] ;
-        % patterns = [ -6, -1,-2, 7, 8] ;
-
+        
     case 2
-        % patterns = [scale_patterns/2; 0] + gen_data_manifold( shape_patterns, scale_patterns, num_patterns, 0.5 ) ;
         patterns = gen_data_manifold( shape_patterns, scale_patterns, num_patterns, 0.5 ) ;
-        % manifold = gen_data_manifold( shape_patterns, scale_patterns, 50, 0 ) ;
-
+        
     otherwise
         error("Cannot simulate more than 2 dimensions, yet.")
 end
 
 % train model
 model = model.train( patterns ) ;
-
-
-% select random pattern to start random walk from
-% gen_1 = model.generate( patterns( :, randi([ 1, num_patterns ]) ), 1000, 0.8) ;
-% gen_2 = model.generate( [15 ; -10], 1000, 0.8) ;
-% gen_3 = model.generate( [15 ; 10], 1000, 0.8) ;
-% gen_4 = model.generate( [-5 ; 15], 1000, 0.8) ;
-% gen_5 = model.generate( [-15 ; 0], 1000, 0.8) ;
 
 % walk on manifold
 walk = model.walk_on_manifold( [0; -16], [0; 16], 1 ) ;

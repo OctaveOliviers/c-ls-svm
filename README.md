@@ -3,11 +3,18 @@
 
 This code is free to use and modify. 
 
+LS-SVM = Least Squares Support Vector Machine
+
+C-AE = contractive autoencoder
+
+C-LS-SVM = Contractive Least Squares Support Vector Machine
+
 ## Background
 
 A C-LS-SVM is a dynamical system to model auto-associative memory.
 Thus, it is a dynamical system that stores memories as stable equilibria.
 
+It integrates the typical contraction of a C-AE into the LS-SVM framework.
 
 ## Software
 
@@ -91,14 +98,22 @@ Train a deep C-LS-SVM that learns good hidden states by itself as follows
 ```
 The software applies gradient descent to optimize the deep Lagrange function over the hidden states.
 
-### Generate a C-LS-SVM 
-The generation process consists of a random walk on the data manifold. Therefore it suffices to define three parameters:
+### Generative C-LS-SVM 
+The generation process consists of a random walk on the data manifold. Therefore, define three parameters:
 1. the position to start the walk `start_pos` (vector) ;
 1. the number of samples to generate `num_gen` (integer) ;
 1. the step size of the random walk `step_size` (float).
 
 ```
     gen_memos = model.generate( start_pos, num_gen, step_size ) ;
+```
+
+It is also possible to walk on the manifold from one point to another. Therefore, define three parameters:
+1. the position to start the walk `start_walk` (vector) ;
+1. the position to end the walk `end_walk` (vector) ;
+1. the step size of the walk `step_size` (float).
+```
+    walk = model.walk_on_manifold( start_walk, end_walk, step_size ) ;
 ```
 
 ### Visualize a C-LS-SVM
@@ -157,9 +172,18 @@ We have gathered the most important commands in the demo.m file.
 
     % visualize generated data points
     model.visualize( [], [], gen_memos ) ;
+
+    % walk on manifold
+    start_walk = [0; -16] ;
+    end_walk   = [0; 16] ;
+    step_size  = 1
+    walk = model.walk_on_manifold( start_walk, end_walk, step_size ) ;
+
+    % visualize model
+    model.visualize( [], [] , [] , walk ) ;
 ```
 
 This small piece of code generates two images, namely
-| **Trained model** |  **Generated samples** |
+| **Trained model** |  **Generated samples** |  **Walk on the manifold** |
 :-------------------------:|:-------------------------:
-![](https://github.com/OctaveOliviers/master-thesis/blob/master/figs/demo-out-1.jpg)  |  ![](https://github.com/OctaveOliviers/master-thesis/blob/master/figs/demo-out-2.jpg)
+![](https://github.com/OctaveOliviers/master-thesis/blob/master/figs/demo-out-1.jpg)  |  ![](https://github.com/OctaveOliviers/master-thesis/blob/master/figs/demo-out-2.jpg) |  ![](https://github.com/OctaveOliviers/master-thesis/blob/master/figs/demo-out-3.jpg)

@@ -1,9 +1,9 @@
 % Created  by OctaveOliviers
 %          on 2020-03-29 19:31:12
 %
-% Modified on 2020-03-29 19:32:13
+% Modified on 2020-06-04 13:13:18
 
-classdef Hopfield_Network < Memory_Model
+classdef Hopfield_Network < CLSSVM
 
     properties
         % model architecture
@@ -14,7 +14,7 @@ classdef Hopfield_Network < Memory_Model
         % constructor
         function obj = Hopfield_Network(phi)
             % superclass constructor
-            obj@Memory_Model() ;
+            obj@CLSSVM() ;
             % architecture
             obj.phi = phi ;     % string
             % model information

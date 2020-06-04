@@ -1,9 +1,9 @@
 % Created  by OctaveOliviers
 %          on 2020-05-12 17:07:41
 %
-% Modified on 2020-05-14 10:42:48
+% Modified on 2020-06-04 12:52:02
 
-% check memory capacity
+% Experiment to visualize the maximal number of equilibria in a C-LS-SVM
 
 clear all
 clc
@@ -12,21 +12,22 @@ clc
 addpath( './models/' )
 addpath( './util/' )
 
+% parameters of the tests
 max_dim   = 1 ;
 steps     = 5 ;
 tol       = 1e-4 ;
 num_tests = 5 ;
 
-% ration eta/lambda
+% ratios eta/lambda
 eta_p_lam = [ 1e-5, 1e-4 , 1e-3, 1e-2 ] ; 
 
 % hold mean and variance for each ratio
 res = zeros( 2, 1 + floor(max_dim/steps), length(eta_p_lam) ) ;
 
 % feature map or kernel function
-fun      = 'poly' ;
+fun = 'poly' ;
 % parameter of feature map or kernel function
-param    = [3, 1] ;
+param  = [3, 1] ;
 
 % maximum capacity
 max_cap = zeros(1,  1 + floor(max_dim/steps) ) ;
@@ -105,7 +106,6 @@ yticks([1, 1e1, 1e2, 1e3, 1e4 ])
 ax = gca;
 ax.YGrid = 'on';
 ax.YMinorGrid = 'off';
-% h =legend( le , 'location', 'northwest', 'interpreter', 'latex', 'fontsize', 12 )
 h =legend( {'$\eta / \lambda = 10^{-4}$', '$\eta / \lambda = 10^{-3}$', '$\eta / \lambda = 10^{-2}$'} , 'location', 'northwest', 'interpreter', 'latex', 'fontsize', 12 )
 % set(h,'color','none') %transparent
 xlabel( 'Number of neurons $N$', 'FontSize', 14, 'interpreter', 'latex', 'fontsize', 14 )
@@ -114,9 +114,7 @@ ylabel( 'Number of equilibria', 'FontSize', 14, 'interpreter', 'latex', 'fontsiz
 
 
 
-
-
-%% compute maximal capacity of different feature maps
+%% Compute maximal capacity of different feature maps
 
 max_dim = 100 ;
 steps   = 10 ; 
@@ -159,7 +157,6 @@ legend( {'poly-7', 'poly-5', 'poly-3', 'sign', 'tanh'}, 'location', 'best', 'int
 xlabel( 'Number of neurons $N$', 'FontSize', 14, 'interpreter', 'latex', 'fontsize', 14 )
 ylabel( 'Number of equilibria', 'FontSize', 14, 'interpreter', 'latex', 'fontsize', 14 )
 % title( {'The capacity of a network', 'strongly depends on its feature map'}, 'interpreter', 'latex', 'fontsize', 14 )
-
 
 
 function d = dimension_feature_space( input_dim, fun, param )

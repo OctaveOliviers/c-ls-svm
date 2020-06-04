@@ -1,7 +1,7 @@
 % Created  by OctaveOliviers
 %          on 2020-03-05 09:54:32
 %
-% Modified on 2020-06-03 19:05:37
+% Modified on 2020-06-04 13:11:20
 
 classdef CLSSVM
 
@@ -506,7 +506,7 @@ classdef CLSSVM
             N = size(x_start, 1) ;
 
             % maximum allowed number of steps
-            max_steps = 20 ;
+            max_steps = 100 ;
             % path between points
             path = zeros(N, max_steps) ;
 

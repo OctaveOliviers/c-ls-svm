@@ -1,12 +1,9 @@
 % Created  by OctaveOliviers
 %          on 2020-05-11 17:32:47
 %
-% Modified on 2020-05-12 08:42:49
+% Modified on 2020-06-04 13:00:00
 
-% Created  by OctaveOliviers
-%          on 2020-03-29 17:04:21
-%
-% Modified on 2020-05-11 17:29:48
+% Experiment to train a deep C-LS-SVM by explicitly assigning the hidden states
 
 clear all
 clc
@@ -22,7 +19,7 @@ addpath( './util/' )
 dim_patterns    = 2 ;
 dim_hidden      = 3 ;
 num_patterns    = 20 ;
-num_groups      = 3 ;
+num_groups      = 4 ;
 scale_patterns  = 15 ; 
 shape_patterns  = 'g' ;
 
@@ -30,7 +27,7 @@ shape_patterns  = 'g' ;
 num_layers      = 1 ;
 
 % create model
-model = Memory_Model( ) ;
+model = CLSSVM( ) ;
 
 % hyper-parameters of layer
 p_err = 1e4 ;   % importance of error

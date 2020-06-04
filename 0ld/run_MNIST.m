@@ -1,7 +1,9 @@
 % Created  by OctaveOliviers
 %          on 2020-03-29 17:06:12
 %
-% Modified on 2020-05-12 09:20:19
+% Modified on 2020-06-04 13:10:45
+
+% Experiment on MNIST data set
 
 clear all
 clc
@@ -99,7 +101,7 @@ disp("data loaded")
 % patterns = reshape( patterns, [num_neurons, num_protos*size(patterns, 3)] ) ;
 
 
-% select number
+% select number to store one specific digit
 selected = 6 ;
 idx = find( lab_train == selected ) ;
 patterns = img_train( :, idx(1:siz_train) ) ;
@@ -107,15 +109,14 @@ patterns = img_train( :, idx(1:siz_train) ) ;
 disp("patterns selected")
 
 %% compute L2 distance between selected patterns
-
-dist = zeros(10, 10) ;
-for k = 0:9
-    for l = (k+1):9
-        disp("compare " + num2str(labels(1+k*num_protos)) + "and" + num2str(labels(1+l*num_protos)))
-        dist(k+1, l+1) = phiTphi( patterns(:, 1+k*num_protos), patterns(:, 1+l*num_protos), 'L2' ) ;
-    end
-end
-dist
+% dist = zeros(10, 10) ;
+% for k = 0:9
+%     for l = (k+1):9
+%         disp("compare " + num2str(labels(1+k*num_protos)) + "and" + num2str(labels(1+l*num_protos)))
+%         dist(k+1, l+1) = phiTphi( patterns(:, 1+k*num_protos), patterns(:, 1+l*num_protos), 'L2' ) ;
+%     end
+% end
+% dist
 
 %% Build model to memorize patterns
 model = Memory_Model( ) ;
@@ -128,15 +129,6 @@ end
 
 % train model
 model = model.train( patterns ) ;
-
-% perf = 0 ; 
-% for k = 1:k_cross_val
-%     
-%     % evaluate model on validation set
-%     
-%     % running average of clasiication performance
-% end
-
 
 
 %% test on new image
@@ -385,4 +377,3 @@ figure('position', [200, 200, size_x, size_y])
 plot_image( path_y(:, end), size_image, "corrupted")
 xlim([1 size_image]) ;
 ylim([1 size_image]) ;
-
