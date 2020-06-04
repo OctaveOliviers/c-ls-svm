@@ -13,7 +13,6 @@ C-LS-SVM = Contractive Least Squares Support Vector Machine
 
 A C-LS-SVM is a dynamical system to model auto-associative memory.
 Thus, it is a dynamical system that stores memories as stable equilibria.
-
 It integrates the typical contraction of a C-AE into the LS-SVM framework.
 
 ## Software
@@ -123,9 +122,13 @@ It is possible to visualize the trained C-LS-SVM as long as `dim_memos <= 2`. Si
 ```
 which will show the memories in the state space, and the dynamics that the C-LS-SVM learned.
 
-To also see the generated data samples, add the 
+To also see the generated data samples
 ```
     model = model.visualize( [], [], gen_memos  ) ;
+```
+or the walk on the manifold
+```
+    model = model.visualize( [], [], [], walk]  ) ;
 ```
 
 ### Demo
@@ -179,11 +182,11 @@ We have gathered the most important commands in the demo.m file.
     step_size  = 1
     walk = model.walk_on_manifold( start_walk, end_walk, step_size ) ;
 
-    % visualize model
+    % visualize the walk on the manifold
     model.visualize( [], [] , [] , walk ) ;
 ```
 
-This small piece of code generates two images, namely
+This small piece of code generates three images, namely
 | **Trained model** |  **Generated samples** |  **Walk on the manifold** |
 :-------------------------:|:-------------------------:|:-------------------------:
 ![](https://github.com/OctaveOliviers/master-thesis/blob/master/figs/demo-out-1.jpg)  |  ![](https://github.com/OctaveOliviers/master-thesis/blob/master/figs/demo-out-2.jpg) |  ![](https://github.com/OctaveOliviers/master-thesis/blob/master/figs/demo-out-3.jpg)
