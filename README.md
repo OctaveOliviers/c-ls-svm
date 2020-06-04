@@ -118,17 +118,17 @@ It is also possible to walk on the manifold from one point to another. Therefore
 ```
 
 ### Visualize a C-LS-SVM
-It is possible to visualize the trained C-LS-SVM as long as `dim_memos <= 2`. Simply run
+Visualizing the trained C-LS-SVM is possible as long as `dim_memos <= 2`. Simply run
 ```
     model = model.visualize( ) ;
 ```
 which will show the memories in the state space, and the dynamics that the C-LS-SVM learned.
 
-To also see the generated data samples
+To see the generated data samples, run
 ```
     model = model.visualize( [], [], gen_memos  ) ;
 ```
-or the walk on the manifold
+and to see the walk on the manifold, run
 ```
     model = model.visualize( [], [], [], walk]  ) ;
 ```
