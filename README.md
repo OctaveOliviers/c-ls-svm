@@ -13,8 +13,9 @@ C-AE = contractive autoencoder
 C-LS-SVM = Contractive Least Squares Support Vector Machine
 
 A C-LS-SVM is a dynamical system to model auto-associative memory.
-Thus, it is a dynamical system that stores memories as stable equilibria.
-It integrates the typical contraction of a C-AE into the LS-SVM framework.
+Specifically, it is a dynamical system that stores memories as locally stable equilibria.
+This way, as the state of the dynamical system evolves, it progressively converges to one of the stored memories.
+A C-LS-SVM integrates the typical contraction of a C-AE into the LS-SVM framework.
 
 ## Software
 
