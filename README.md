@@ -130,7 +130,7 @@ To see the generated data samples, run
 ```
 and to see the walk on the manifold, run
 ```
-    model = model.visualize( [], [], [], walk]  ) ;
+    model = model.visualize( [], [], [], walk  ) ;
 ```
 
 ### Demo
