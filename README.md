@@ -3,13 +3,14 @@
 
 This code is free to use and modify. 
 
+
+## Background
+
 LS-SVM = Least Squares Support Vector Machine
 
 C-AE = contractive autoencoder
 
 C-LS-SVM = Contractive Least Squares Support Vector Machine
-
-## Background
 
 A C-LS-SVM is a dynamical system to model auto-associative memory.
 Thus, it is a dynamical system that stores memories as stable equilibria.
