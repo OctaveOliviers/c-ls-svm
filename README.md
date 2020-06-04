@@ -185,5 +185,5 @@ We have gathered the most important commands in the demo.m file.
 
 This small piece of code generates two images, namely
 | **Trained model** |  **Generated samples** |  **Walk on the manifold** |
-:-------------------------:|:-------------------------:
+:-------------------------:|:-------------------------:|:-------------------------:
 ![](https://github.com/OctaveOliviers/master-thesis/blob/master/figs/demo-out-1.jpg)  |  ![](https://github.com/OctaveOliviers/master-thesis/blob/master/figs/demo-out-2.jpg) |  ![](https://github.com/OctaveOliviers/master-thesis/blob/master/figs/demo-out-3.jpg)
