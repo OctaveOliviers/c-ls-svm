@@ -17,6 +17,12 @@ Specifically, it is a dynamical system that stores memories as locally stable eq
 This way, as the state of the dynamical system evolves, it progressively converges to one of the stored memories.
 A C-LS-SVM integrates the typical contraction of a C-AE into the LS-SVM framework.
 
+<object data="https://github.com/OctaveOliviers/master-thesis/blob/master/poster.pdf" type="application/pdf" width="700px" height="700px">
+    <embed src="https://github.com/OctaveOliviers/master-thesis/blob/master/poster.pdf">
+        <p>This browser does not support PDFs. Please download the PDF to view it: <a href="https://github.com/OctaveOliviers/master-thesis/blob/master/poster.pdf">Download PDF</a>.</p>
+    </embed>
+</object>
+
 ## Software
 
 ### Requirements
