@@ -1,7 +1,7 @@
 % Created  by OctaveOliviers
 %          on 2020-03-15 16:25:40
 %
-% Modified on 2020-05-12 15:05:24
+% Modified on 2020-09-30 14:09:02
 
 classdef Layer_Primal < Layer
     
@@ -63,7 +63,7 @@ classdef Layer_Primal < Layer
             B( 1:D, : ) = f*Y' ;
             B( end, : ) = sum(Y, 2) ;
 
-            cond(A)
+            % cond(A)
 
             % compute parameters
             v = A\B ;

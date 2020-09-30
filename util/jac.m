@@ -1,7 +1,7 @@
 % Created  by OctaveOliviers
 %          on 2020-03-29 16:54:35
 %
-% Modified on 2020-05-12 10:56:32
+% Modified on 2020-09-30 14:50:53
 
 % compute Jacobian matrix in each pattern as long matrix
 %   input

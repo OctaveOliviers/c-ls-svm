@@ -1,7 +1,7 @@
 % Created  by OctaveOliviers
 %          on 2020-05-11 17:32:47
 %
-% Modified on 2020-06-04 13:00:00
+% Modified on 2020-09-30 14:55:28
 
 % Experiment to train a deep C-LS-SVM by explicitly assigning the hidden states
 

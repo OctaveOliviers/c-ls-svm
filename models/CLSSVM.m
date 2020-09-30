@@ -1,7 +1,7 @@
 % Created  by OctaveOliviers
 %          on 2020-03-05 09:54:32
 %
-% Modified on 2020-06-04 13:11:20
+% Modified on 2020-09-30 14:58:45
 
 classdef CLSSVM
 
@@ -69,6 +69,17 @@ classdef CLSSVM
             obj = obj.update_name() ;
         end
 
+
+        % getter function
+        function N = dim_memories(obj)
+            N = size(obj.patterns, 1) ;
+        end
+
+
+        % getter function
+        function P = num_memories(obj)
+            P = size(obj.patterns, 2) ;
+        end
 
         % add new layer to model
         function obj = add_layer(obj, varargin)
@@ -158,12 +169,13 @@ classdef CLSSVM
             % X     matrix with start positions to simulate from as columns
 
             if nargout == 1
+                % only output the new state
                 F = X ;
                 for l = 1:obj.num_lay
                     F = obj.layers{ l }.simulate_one_step( F ) ;
                 end
             else
-                % cell to store hidden state in each layer
+                % output new state and the hidden states in each layer
                 states = cell( 1, obj.num_lay+1 ) ;
                 states{1} = { X } ;
                 for l = 1:obj.num_lay
@@ -178,12 +190,12 @@ classdef CLSSVM
         % compute value of error
         function E = model_error(obj, varargin)
 
-            % compute error of model
-            if (nargin<2)
+            if (nargin==1)
+                % compute error of model
                 E = obj.E ;
 
-            % compute error in new point
             else
+                % compute error in new point
                 E = varargin{1} - obj.simulate_one_step( varargin{1} ) ;
             end
         end
@@ -192,17 +204,18 @@ classdef CLSSVM
         % compute value of jacobian 
         function J_new = model_jacobian(obj, varargin)
             
-            % compute jacobian of model
             if (nargin==1)
+                % compute jacobian of model
                 [N, P] = size( obj.patterns ) ;
+                % pass input through network to get state at each level
+                [~, states] = obj.simulate_one_step( obj.patterns ) ;
 
-            % compute jacobian in new point
             else
+                % compute jacobian in new point
                 [N, P] = size( varargin{1} ) ;
-            end
-            
-            % pass input through network to get state at each level
-            [~, states] = obj.simulate_one_step( varargin{1} ) ;
+                % pass input through network to get state at each level
+                [~, states] = obj.simulate_one_step( varargin{1} ) ;
+            end            
 
             % initialize
             J_new = obj.layers{end}.layer_jacobian( cell2mat(states{end-1}) ) ;
@@ -220,6 +233,30 @@ classdef CLSSVM
                 end
             end
             J_new = J_new ;
+        end
+
+
+        % compute value of jacobian 
+        function J_3D = model_jacobian_3D(obj, varargin)
+            % varargin  
+            %       index of selected memories
+
+            if nargin == 1
+                % compute jacobian in all the memories
+                J       = obj.model_jacobian( ) ;
+                [N, NP] = size(J) ;
+                J_3D    = reshape(J, [N, N, NP/N]) ;
+
+            elseif nargin==2
+                % compute jacobian in selected memories
+                idx     = varargin{1} ;
+                J       = obj.model_jacobian( obj.patterns(:,idx) ) ;
+                [N, NP] = size(J) ;
+                J_3D    = reshape(J, [N, N, sum(idx)]) ;
+
+            else
+                error("Not correct number of arguments")
+            end
         end
 
 
