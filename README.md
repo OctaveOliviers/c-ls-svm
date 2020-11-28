@@ -1,4 +1,3 @@
-## Master Thesis
 # Contractive Least-Squares Support Vector Machines for associative memory
 
 This code is free to use and modify. 
