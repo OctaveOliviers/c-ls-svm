@@ -1,7 +1,7 @@
 % Created  by OctaveOliviers
 %          on 2020-09-25 17:15:56
 %
-% Modified on 2020-09-30 13:38:48
+% Modified on 2020-11-30 15:27:38
 
 classdef Transformer_Memory
 
@@ -14,13 +14,18 @@ classdef Transformer_Memory
 
     methods
         % constructor
-        function obj = Transformer_Memory( memories, param )
+        function obj = Transformer_Memory( param )
 
-            obj.X       = memories ;
             obj.param   = param ;
-            obj.E       = obj.model_error( ) ;
 
             obj.name    = "Transformer Memory" ;            
+        end
+
+
+        % train model
+        function obj = train(obj, memories)
+            obj.X       = memories ;
+            obj.E       = obj.model_error( ) ;
         end
 
 
