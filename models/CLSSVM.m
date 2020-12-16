@@ -127,35 +127,44 @@ classdef CLSSVM
             [N,P] = size(start) ;
             
             % initialize variables
-            x_old = start ;
-            max_steps = 50 ;
-
+            % x_old = start ;
+            max_steps = 200 ;
             % variable to store evolution of state
-            path = zeros( [size(start), max_steps] ) ;
-            path(:, :, 1) = x_old ;
-
+            %path = zeros( [size(start), max_steps] ) ;
+            path = cell(P,1) ;
+            path(:,1) = {zeros(N,max_steps)} ;
+            
             % update state until it has converged
             for p =1:P
-                for i = 2:max_steps
+                x_old = start(:,p) ;
+                path{p}(:,1) = x_old ;
+                
+                % first step outside loop to store update length
+                x_new = obj.simulate_one_step(x_old) ;
+                path{p}(:,2) = x_new ;
+                upd_len = vecnorm(x_old-x_new) ;
+                
+                for i = 3:max_steps
                     x_new = obj.simulate_one_step(x_old) ;
-                    path(:, p, i) = x_new ;
+                    path{p}(:,i) = x_new ;
 
                     % check for convergence
                     % if norm(x_old-x_new, 1) <= N*1e-3
-                    if all(vecnorm(x_old-x_new, 1) <= 1e-2*vecnorm(x_old, 1))
+                    if vecnorm(x_old-x_new) <= 1e-3*upd_len
                         break
                     end
                     % avoid divergence
-                    if any(vecnorm(x_new)>100*max(vecnorm(obj.patterns)))
+                    if vecnorm(x_new) > 10*max(vecnorm(obj.patterns))
                         disp("Simulation diverged.")
                         break
                     end
 
                     x_old = x_new ;                
                 end
+                
+                % remove all the zero columns in path
+                path{p}(:, ~any(path{p},1)) = [] ;
             end
-            % remove all the zero columns in path
-            path(:,:, ~any(path,[1 2])) = [] ;
 
             % visualize the update map f(x) of the layer
             if (nargin>2)
@@ -163,7 +172,11 @@ classdef CLSSVM
                 varargout{1} = obj.simulate_one_step( x ) ;
             end
             if (nargout>=3)
-                varargout{2} = x_new ;
+                x_end = zeros(N,P) ;
+                for p = 1:P
+                    x_end(:,p) = path{p}(:, find(any(path{p},1),1,'last')) ;
+                end                
+                varargout{2} = x_end ;
             end
         end
 
@@ -718,17 +731,18 @@ classdef CLSSVM
 
                 % simulate model from initial conditions in varargin
                 if (nargin>1) && ~isempty(varargin{1})
-                    x_k = varargin{1} ; 
-                    p   = obj.simulate( x_k ) ;
+                    p   = obj.simulate( varargin{1} ) ;
                     
-                    P = zeros([size(p, 1), size(p, 2), 2*size(p, 3)]) ;
-                    P(:, :, 1:2:end) = p ;
-                    P(:, :, 2:2:end) = p ;
-
-                    for i = 1:size(P, 2)
-                        plot(squeeze(P(1, i, 1:end-1)), squeeze(P(1, i, 2:end)), 'linewidth', 1, 'linestyle', '-','color', orange) ;
+                    %for i = 1:size(P, 2)
+                    for i = 1:length(p)
+                    
+                        P = zeros([1, 2*size(p{i},2)]) ;
+                        P(:, 1:2:end) = p{i} ;
+                        P(:, 2:2:end) = p{i} ;
+                        
+                        plot(P(:,1:end-1), P(:,2:end), 'linewidth', 1, 'linestyle', '-','color', orange) ;
+                        plot(p{i}(1, 1), p{i}(1, 1), 'o', 'color', orange, 'linewidth', 1.5 ) ;
                     end
-                    plot(squeeze(p(:, :, 1)), squeeze(p(:, :, 1)), 'o', 'color', orange, 'linewidth', 1.5 ) ;
                 end
 
                 % identity map
@@ -786,10 +800,10 @@ classdef CLSSVM
                     x_k = varargin{1} ; 
                     p   = obj.simulate( x_k ) ;
                     
-                    for i = 1:size(p, 2)
-                        plot(squeeze(p(1, i, :)), squeeze(p(2, i, :)), 'color', orange, 'linewidth', 1)
+                    for i = 1:length(p)
+                        plot(p{i}(1,:), p{i}(2,:), 'color', orange, 'linewidth', 1)
                     end
-                    plot(p(1, :, 1), p(2, :, 1), 'o', 'color', orange, 'linewidth', 1.5)
+                    plot(p{i}(1,1), p{i}(2,1), 'o', 'color', orange, 'linewidth', 1.5)
                 end
 
                 % plot manifold of the data
