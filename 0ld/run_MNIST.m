@@ -15,10 +15,10 @@ addpath( './util/' )
 
 % parameters of data set
 siz_train       = 50 ;
-siz_load        = 1000 ;
+siz_load        = 50 ;
 siz_val         = 100 ;
 siz_test        = 1000 ; 
-num_protos      = floor(siz_train/10) ;       % number of prototypes to select for each label
+num_protos      = 1 ; %floor(siz_train/10) ;       % number of prototypes to select for each label
 % parameters of model
 num_layers      = 1 ;
 formulation     = { 'dual', 'primal' } ; 
@@ -26,7 +26,7 @@ dim_layer       = { 400 , 400 } ;
 feature_map     = { 'rbf', 'tanh' } ; 
 parameter       = { 20, 30 } ;
 p_err           = { 1e2,  1e2 } ;  % importance of error
-p_drv           = { 1e2,  1e2 } ;  % importance of minimizing derivative
+p_drv           = { 1e0,  1e2 } ;  % importance of minimizing derivative
 p_reg           = { 1e-2, 1e-2 } ;  % importance of regularization200
 % parameters of training
 k_cross_val     = 10 ;
@@ -69,44 +69,45 @@ clear train_img train_lbl test_img test_lbl
 
 disp("data loaded")
 
+
 %% Select images to memorize
 
 % select random patterns
-% if num_patterns == size(train_img, 3)
-%     patterns = train_img ; 
-%     labels   = train_lbl ;
-% else
-%     rand_idx = randi(60000, 1, num_patterns) ;
-%     patterns = train_img(rand_idx) ;
-%     labels   = train_lbl(rand_idx) ;
-% end
+if siz_train == size(img_train, 2)
+    patterns = img_train ; 
+    labels   = lab_train ;
+else
+    rand_idx = randi(siz_load, 1, siz_train) ;
+    patterns = img_train(:, rand_idx) ;
+    labels   = lab_train(rand_idx) ;
+end
 
 % select means of each group
-% [patterns, labels] = select_means( img_train, lab_train, num_protos, 'rbf', 10 ) ;
+% [patterns, labels] = select_means( img_train, lab_train, num_protos, 'rbf', 0 ) ;
 
 % select principal components
 % sig = 0.1 ;
 % patterns = select_KPCA( train_img, train_lbl, num_protos, 'RBF', sig ) ;
 
-% visualize chosen prototypes
-% figure('position', [100, 100, 1000, num_protos*100])
-% for i = 1:size(patterns, 3)
-%   for j = 1:num_protos
-%       subplot( num_protos, size(patterns, 3), (j-1)*size(patterns, 3) + i )
-%       plot_image( squeeze(patterns(:, j, i)), size_image, " " )
-%   end
-% end
-% sgtitle( num2str(sig) )
-
 % patterns = reshape( patterns, [num_neurons, num_protos*size(patterns, 3)] ) ;
 
-
-% select number to store one specific digit
-selected = 6 ;
-idx = find( lab_train == selected ) ;
-patterns = img_train( :, idx(1:siz_train) ) ;
+% % select number to store one specific digit
+% selected = 0 ;
+% idx = find( lab_train == selected ) ;
+% patterns = img_train( :, idx(1:siz_train) ) ;
 
 disp("patterns selected")
+
+% visualize chosen patterns
+figure('position', [100, 100, 1000, num_protos*100])
+for i = 1:size(patterns, 2)
+  for j = 1:num_protos
+      subplot( num_protos, size(patterns, 2), (j-1)*size(patterns, 2) + i )
+      plot_image( patterns(:, i), size_image, " " )
+  end
+end
+% sgtitle( num2str(sig) )
+
 
 %% compute L2 distance between selected patterns
 % dist = zeros(10, 10) ;
@@ -119,7 +120,7 @@ disp("patterns selected")
 % dist
 
 %% Build model to memorize patterns
-model = Memory_Model( ) ;
+model = CLSSVM( ) ;
 % add layers
 for l = 1:num_layers
     model = model.add_layer( formulation{l}, dim_layer{l}, ...
@@ -133,8 +134,8 @@ model = model.train( patterns ) ;
 
 %% test on new image
 % select test image 
-random_idx = randi(siz_test) ;
-% random_idx = 32 ;
+% random_idx = randi(siz_test) ;
+random_idx = 32 ;
 test_x     = img_test(:, random_idx) ;
 test_y     = lab_test(random_idx) ;
 
@@ -177,8 +178,8 @@ disp(" ")
 
 %% test on corrupted image from training set
 
-random_idx = randi(siz_train) ;
-% random_idx = 26 ;
+% random_idx = randi(siz_train) ;
+random_idx = 26 ;
 test_x     = patterns(:, random_idx) + 1*randn(400, 1) ;
 % test_y     = labels(random_idx) ;
 
@@ -190,10 +191,11 @@ dist = phiTphi(patterns, path(:, 1, end), 'L1') ;
 [~,  closest_idx] = sort(dist) ;
 % found_label = mode( labels( closest_idx(1:num_to_avg_over) ) ) ;
 
+
+% PLOT results
 size_x = 150 ;
 size_y = 150 ;
 
-% PLOT results
 max_steps_show = 3 ;
 num_plots = min(num_steps + 3, max_steps_show + 3);
 % plot images as [test, step i, closest to]

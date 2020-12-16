@@ -1,7 +1,7 @@
 % Created  by OctaveOliviers
 %          on 2020-03-16 22:59:46
 %
-% Modified on 2020-04-27 22:21:47
+% Modified on 2020-12-09 21:25:55
 
 % compute product of jacobians 
 %       m = J_phi(x)^T * J_phi(y) 

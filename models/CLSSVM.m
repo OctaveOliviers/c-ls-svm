@@ -1,7 +1,7 @@
 % Created  by OctaveOliviers
 %          on 2020-03-05 09:54:32
 %
-% Modified on 2020-09-30 14:58:45
+% Modified on 2020-11-25 12:58:12
 
 classdef CLSSVM
 
@@ -124,42 +124,46 @@ classdef CLSSVM
             % varargin  (1) array of starting values to compute update equation
 
             % useful variables
-            N = size(start, 1) ;
+            [N,P] = size(start) ;
             
             % initialize variables
             x_old = start ;
-            max_steps = 30 ;
+            max_steps = 50 ;
 
             % variable to store evolution of state
             path = zeros( [size(start), max_steps] ) ;
             path(:, :, 1) = x_old ;
 
             % update state until it has converged
-            for i = 2:max_steps
-                x_new = obj.simulate_one_step(x_old) ;
-                path(:, :, i) = x_new ;
+            for p =1:P
+                for i = 2:max_steps
+                    x_new = obj.simulate_one_step(x_old) ;
+                    path(:, p, i) = x_new ;
 
-                norm(x_old-x_new, 1)
-                % check for convergence
-                if norm(x_old-x_new, 1) <= N*1e-3
-                    break
-                end
-                % avoid divergence
-                if norm(x_new)>10*max(vecnorm(obj.patterns))
-                    disp("Simulation diverged.")
-                    break
-                end
+                    % check for convergence
+                    % if norm(x_old-x_new, 1) <= N*1e-3
+                    if all(vecnorm(x_old-x_new, 1) <= 1e-2*vecnorm(x_old, 1))
+                        break
+                    end
+                    % avoid divergence
+                    if any(vecnorm(x_new)>100*max(vecnorm(obj.patterns)))
+                        disp("Simulation diverged.")
+                        break
+                    end
 
-                x_old = x_new ;                
+                    x_old = x_new ;                
+                end
             end
-
             % remove all the zero columns in path
             path(:,:, ~any(path,[1 2])) = [] ;
 
             % visualize the update map f(x) of the layer
             if (nargin>2)
                 x = varargin{1} ;
-                varargout{1} = obj.simulate_one_step( x ) ; ;
+                varargout{1} = obj.simulate_one_step( x ) ;
+            end
+            if (nargout>=3)
+                varargout{2} = x_new ;
             end
         end
 
