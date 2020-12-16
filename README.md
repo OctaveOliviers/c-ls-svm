@@ -1,16 +1,15 @@
-## Master Thesis
-# Deep Contractive Least Squares Support Vector Machines for associative memory
+# Contractive Least-Squares Support Vector Machines for associative memory
 
 This code is free to use and modify. 
 
 
 ## Background
 
-LS-SVM = Least Squares Support Vector Machine
+LS-SVM = Least-Squares Support Vector Machine
 
 C-AE = contractive autoencoder
 
-C-LS-SVM = Contractive Least Squares Support Vector Machine
+C-LS-SVM = Contractive Least-Squares Support Vector Machine
 
 A C-LS-SVM is a dynamical system to model auto-associative memory.
 Specifically, it is a dynamical system that stores memories as locally stable equilibria.
