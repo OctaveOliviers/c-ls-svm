@@ -7,7 +7,7 @@ This code is free to use and modify.
 
 LS-SVM = Least-Squares Support Vector Machine
 
-C-AE = contractive autoencoder
+C-AE = Contractive AutoEncoder
 
 C-LS-SVM = Contractive Least-Squares Support Vector Machine
 
