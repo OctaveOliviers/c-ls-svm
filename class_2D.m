@@ -51,7 +51,7 @@ model = model.train( [ mu_1 , mu_2, mu_3 ] ) ;
 % visualize trained model
 % model.visualize( ) ;
 plot_decision(model, class_1, class_2, class_3, mu_1, mu_2, mu_3) ;
-plot_convergence(model, class_1, class_2, mu_1, mu_2) ;
+plot_convergence(model, class_1, class_2, class_3, mu_1) ;
 
 
 %function plot_decision(model, class_1, class_2, mu_1, mu_2)
@@ -71,8 +71,8 @@ function plot_decision(model, class_1, class_2, class_3, mu_1, mu_2, mu_3)
     purple      = [103, 78, 167]/255 ;
     
     % parameters of the plot
-    prec = 1 ;
-    wdw = 10 ;
+    prec = 5 ;
+    wdw = 40 ;
     x_min = -wdw + floor( min( [ class_1(1,:), class_2(1,:) ] )) ;
     x_max =  wdw + ceil(  max( [ class_1(1,:), class_2(1,:) ] )) ;
     y_min = -wdw + floor( min( [ class_1(2,:), class_2(2,:) ] )) ;
@@ -138,7 +138,7 @@ function plot_decision(model, class_1, class_2, class_3, mu_1, mu_2, mu_3)
 end
 
 
-function plot_convergence(model, class_1, class_2, mu_1, mu_2)
+function plot_convergence(model, class_1, class_2, class_3, mu_1)
 
     figure('position', [800, 100, 400, 300])
     set(gca,'TickLabelInterpreter','latex')
