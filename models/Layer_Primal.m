@@ -153,7 +153,7 @@ classdef Layer_Primal < Layer
         function f = simulate_one_step(obj, x)
             % x     matrix with start positions to simulate from as columns
 
-            f = ( obj.W' * feval(obj.phi, x) + obj.b ) ;
+            f = (1-obj.p_mom)*x + obj.p_mom*( obj.W' * feval(obj.phi, x) + obj.b ) ;
         end
     end
 end

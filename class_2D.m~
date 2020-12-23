@@ -33,10 +33,10 @@ class_3 = mu_3 + std_3 * randn( dim, num ) ;
 %
 % lab = [ ones(1, size(class_1, 2)) ; -ones(1, size(class_2, 2)) ] ;
 
-% % create double moon data
-% scale = 5 ;
-% moon1 = gen_data_manifold( "c", scale, num, 0.5 ) ;
-% moon2 = -1* gen_data_manifold( "c", scale, num, 0.5 ) - scale/2 ;
+% create double moon data
+moon1 = gen_data_manifold( "c", 5, 20, 0.5 ) ;
+moon1 = gen_data_manifold( "c", 5, 20, 0.5 ) ;
+
 
 % (hyper-)parameters of the layer
 space           = 'dual' ;          % space to train layer
@@ -48,14 +48,14 @@ feat_map_param  = 4 ;               % parameter of feature map or kernel functio
 % build model
 model = CLSSVM() ;
 % add a layer
-model = model.add_layer( space, dim, hp_equi, hp_stab, hp_reg, feat_map, feat_map_param, alpha ) ;
+model = model.add_layer( space, dim, hp_equi, hp_stab, hp_reg, feat_map, feat_map_param ) ;
 
 % train model
 %model = model.train( [ class_1 , class_2 ] ) ;
-% model = model.train( [ class_1 , class_2 , class_3 ] ) ;
+model = model.train( [ class_1 , class_2 , class_3 ] ) ;
 % train model only on mean of each class
 %model = model.train( [ mu_1 , mu_2 ] ) ;
-model = model.train( [ mu_1 , mu_2 , mu_3 ] ) ;
+%model = model.train( [ mu_1 , mu_2, mu_3 ] ) ;
 
 % visualize trained model
 % model.visualize( ) ;
@@ -98,8 +98,8 @@ function plot_decision(model, class_1, class_2, class_3, mu_1, mu_2, mu_3, alpha
 %     bin_class_1 = vecnorm(x_ends-mean(class_1, 2)) <= vecnorm(x_ends-mean(class_2, 2)) ;
 %     bin_class_2 = vecnorm(x_ends-mean(class_2, 2)) <= vecnorm(x_ends-mean(class_2, 2)) ;
     
-    %x_end = simulate_alpha(model, data, alpha) ;
-    [~, ~, x_end] = model.simulate( data ) ;
+    x_end = simulate_alpha(model, data, alpha) ;
+    %[~, ~, x_end] = model.simulate( data ) ;
     
     dist2class1 = vecnorm(x_end-mu_1) ;
     dist2class2 = vecnorm(x_end-mu_2) ;
@@ -191,8 +191,7 @@ function plot_convergence(model, class_1, class_2, class_3, mu_1, alpha)
     data_d2class1 = zeros(size(data,2), num_steps) ;
     data_d2class2 = zeros(size(data,2), num_steps) ;
     for n = 1:num_steps 
-        data_new = model.simulate_one_step(data_old) ;
-        %data_new = simulate_alpha_one_step(model, data_old, alpha ) ;
+        data_new = simulate_alpha_one_step(model, data_old, alpha ) ;
         % store step
         data_d2class1(:,n) = vecnorm(data_new-mu_1) ;
         %data_d2class2(:,n) = vecnorm(data_new-mu_2) ;
@@ -209,4 +208,56 @@ function plot_convergence(model, class_1, class_2, class_3, mu_1, alpha)
     xlabel('num steps', 'interpreter', 'latex', 'fontsize', 14)
     ylabel('distance', 'interpreter', 'latex', 'fontsize', 14)
     title( "2D classification", 'interpreter', 'latex', 'fontsize', 14 )
+end
+
+
+function x_end = simulate_alpha(model, x_start, alpha)
+
+    [N,P] = size(x_start) ;
+
+    max_steps = 500 ;
+    x_end = zeros(N,P) ;
+    
+    for p =1:P
+        x_old = x_start(:,p) ;
+            
+        x_temp = model.simulate_one_step(x_old) ;
+        x_new = (1-alpha) * x_old + alpha * x_temp ;
+        upd_len = vecnorm(x_old-x_new) ;
+        x_old = x_new ;
+        
+        for i = 2:max_steps
+            x_temp = model.simulate_one_step(x_old) ;
+            x_new = (1-alpha) * x_old + alpha * x_temp ;
+
+            % check for convergence
+            if vecnorm(x_old-x_new) <= 1e-3*upd_len
+                break
+            end
+            % avoid divergence
+            if vecnorm(x_new) > 10*max(vecnorm(model.patterns))
+                disp("Simulation " + p + " diverged.")
+                break
+            end
+
+            x_old = x_new ;                
+        end
+                
+        % remove all the zero columns in path
+        x_end(:,p) = x_new ;
+    end
+    
+end
+
+function x_end = simulate_alpha_one_step(model, x_start, alpha)
+
+    [N,P] = size(x_start) ;
+
+    x_end = zeros(N,P) ;
+    
+    for p = 1:P
+        x_old = x_start(:,p) ;
+        x_temp = model.simulate_one_step(x_old) ;
+        x_end(:,p) = (1-alpha) * x_old + alpha * x_temp ;
+    end
 end

@@ -165,7 +165,7 @@ classdef Layer_Dual < Layer
             PTp = phiTphi( obj.X, x, obj.phi, obj.theta ) ;
             FTp = jacTphi( obj.X, x, obj.phi, obj.theta ) ;
 
-            f   = (obj.L_e*PTp + obj.L_d*FTp)/obj.p_reg + obj.b ;
+            f   = (1-obj.p_mom)*x + obj.p_mom*( (obj.L_e*PTp + obj.L_d*FTp)/obj.p_reg + obj.b ) ;
         end
     end
 end

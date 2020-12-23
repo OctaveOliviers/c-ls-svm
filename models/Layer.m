@@ -19,6 +19,7 @@ classdef Layer
         p_err    % importance of minimizing error
         p_drv    % importance of minimizing derivative
         p_reg    % importance of regularization
+        p_mom    % momentum hyper parameter for evaluation
         % layer weights
         W        % primal weights
         b        % bias
@@ -41,9 +42,15 @@ classdef Layer
             % layer parameters
             obj.N_out   = N_out ;   % integer
             obj.phi     = phi ;     % string
-            if nargin == 6
+            if nargin >= 6
                 obj.theta = varargin{1} ; % float
             end
+            if nargin >= 7
+                obj.p_mom = varargin{2} ; % float
+            else
+                obj.p_mom = 1 ;
+            end
+             
         end
 
 

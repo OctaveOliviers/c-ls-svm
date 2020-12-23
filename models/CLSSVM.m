@@ -87,7 +87,7 @@ classdef CLSSVM
             %   obj.add_layer( layer )
             %
             % of add layer from its parameters
-            %   obj.add_layer( space, n_out, p_err, p_drv, p_reg, phi, theta )
+            %   obj.add_layer( space, n_out, p_err, p_drv, p_reg, phi, theta, p_mom )
 
             % append to cell of layers
             if ( nargin == 2 )
@@ -95,7 +95,7 @@ classdef CLSSVM
                 obj.layers(end+1:end+num_new_lay) = varargin{1} ;
 
                 if prod( cellfun(@is_trained, varargin{1}) ) && isempty(obj.patterns) && (obj.num_lay==0)
-                    obj.patterns = varargin{1}{1}.X 
+                    obj.patterns = varargin{1}{1}.X ;
                 end
 
             else
