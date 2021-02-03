@@ -13,7 +13,7 @@ addpath( './util/' )
 angle = 0 ;
 R = [cos(angle) -sin(angle) ; sin(angle) cos(angle)] ;
 
-alpha = 1.2 ;
+alpha = 1.5 ;
 
 % create data set
 dim = 2 ;
@@ -52,10 +52,10 @@ model = model.add_layer( space, dim, hp_equi, hp_stab, hp_reg, feat_map, feat_ma
 
 % train model
 %model = model.train( [ class_1 , class_2 ] ) ;
-% model = model.train( [ class_1 , class_2 , class_3 ] ) ;
+model = model.train( [ class_1 , class_2 , class_3 ] ) ;
 % train model only on mean of each class
-%model = model.train( [ mu_1 , mu_2 ] ) ;
-model = model.train( [ mu_1 , mu_2 , mu_3 ] ) ;
+% model = model.train( [ mu_1 , mu_2 ] ) ;
+% model = model.train( [ mu_1 , mu_2 , mu_3 ] ) ;
 
 % visualize trained model
 % model.visualize( ) ;
@@ -66,7 +66,7 @@ plot_convergence(model, class_1, class_2, class_3, mu_1, alpha) ;
 %function plot_decision(model, class_1, class_2, mu_1, mu_2)
 function plot_decision(model, class_1, class_2, class_3, mu_1, mu_2, mu_3, alpha)
 
-    figure('position', [800, 500, 400, 300])
+    figure('position', [800, 500, 350, 300])
     set(gca,'TickLabelInterpreter','latex')
     hold on
     box on
@@ -152,15 +152,15 @@ function plot_decision(model, class_1, class_2, class_3, mu_1, mu_2, mu_3, alpha
     ylim([y_min, y_max])
 %     xticks([])
 %     yticks([])
-    axis equal
-    title( "2D classification", 'interpreter', 'latex', 'fontsize', 14 )
+    axis square
+%     title( "Basins of attraction", 'interpreter', 'latex', 'fontsize', 14 )
     %legend( [l_patterns_c1, l_patterns_c2, hlines(1)], {'Class 1', 'Class 2', 'Streamlines'}, 'location', 'southwest','interpreter', 'latex', 'fontsize', 12) ;
 end
 
 
 function plot_convergence(model, class_1, class_2, class_3, mu_1, alpha)
 
-    figure('position', [800, 100, 400, 300])
+    figure('position', [800, 100, 350, 300])
     set(gca,'TickLabelInterpreter','latex')
     hold on
     box on
@@ -186,7 +186,7 @@ function plot_convergence(model, class_1, class_2, class_3, mu_1, alpha)
 
     data = [ X(:)' ; Y(:)' ] ;
     
-    num_steps = 200 ;
+    num_steps = 500 ;
     data_old = data ;
     data_d2class1 = zeros(size(data,2), num_steps) ;
     data_d2class2 = zeros(size(data,2), num_steps) ;
@@ -204,9 +204,12 @@ function plot_convergence(model, class_1, class_2, class_3, mu_1, alpha)
     %plot(1:num_steps, data_d2class2, 'color', green)
 
     hold off
+    axis square
     set(gca,'FontSize',12)
-    ylim([-0.5 , max([data_d2class1, data_d2class2], [], 'all')+0.5])
-    xlabel('num steps', 'interpreter', 'latex', 'fontsize', 14)
-    ylabel('distance', 'interpreter', 'latex', 'fontsize', 14)
-    title( "2D classification", 'interpreter', 'latex', 'fontsize', 14 )
+    xlim([0 num_steps])
+    ylim([-0.5 , 8])
+%     ylim([-0.5 , max([data_d2class1, data_d2class2], [], 'all')+0.5])
+    xlabel('Number of steps', 'interpreter', 'latex', 'fontsize', 14)
+    ylabel({'Distance from'; 'orange class mean'}, 'interpreter', 'latex', 'fontsize', 14)
+%     title( "Convergence analysis", 'interpreter', 'latex', 'fontsize', 14 )
 end

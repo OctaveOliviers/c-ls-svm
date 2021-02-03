@@ -1,18 +1,29 @@
-% Created  by OctaveOliviers
-%          on 2020-03-15 16:25:40
+% Created by OctaveOliviers
+%         on 2021-01-19 07:58:39
 %
-% Modified on 2020-09-30 14:13:02
+% Last modified by OctaveOliviers
+%               on 2021-01-19 10:34:26
 
-classdef Layer_Dual < Layer
+
+classdef Layer_Dual_grad < Layer_Dual
     
+
+    properties
+
+        step_L_e
+        step_L_d
+
+    end
+
     methods
 
         % constructor
-        function obj = Layer_Dual(varargin)
+        function obj = Layer_Dual_grad(varargin)
             % superclass constructor
-            obj@Layer(varargin{:}) ;
+            obj@Layer_Dual(varargin{:}) ;
             % subclass secific variable
-            obj.space = 'dual' ;
+            obj.step_L_e = 'dual' ;
+            obj.step_L_d = 
         end
 
 
@@ -42,6 +53,19 @@ classdef Layer_Dual < Layer
             obj.N_in  = Nx ;
             obj.P     = P ;
             
+            % initialize the layer parameters
+            obj.L_e = rand(Nx, P) ;
+            obj.L_d = rand(Ny, Nx*P) ;
+
+            % Nexton step for each parameter
+            parfor p = 1:P
+
+                parfor p = 1:P
+
+                end
+
+            end
+
             % build kernel terms
             pTp = phiTphi(X, X, obj.phi, obj.theta) ;
             pTj = phiTjac(X, X, obj.phi, obj.theta) ;
