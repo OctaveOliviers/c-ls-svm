@@ -2,12 +2,13 @@
 # @Created by: OctaveOliviers
 # @Created on: 2021-01-28 12:13:54
 # @Last Modified by: OctaveOliviers
-# @Last Modified on: 2021-02-03 18:52:29
+# @Last Modified on: 2021-03-17 17:15:36
 
 
 # import libraries
 import torch
 import torch.nn as nn
+import gpytorch.kernels as gpk
 from utils import *
 
 
@@ -33,11 +34,14 @@ class Layer(nn.Module):
         self._dim_out    = kwargs['dim_out']
         # data to train on
         self._data       = None
+        # 
+        self._w_init     = getattr(nn.init, "xavier_uniform_")
+        self._b_init     = getattr(nn.init, "zeros_")
 
     @property
     def p_err(self):
         """
-        Getter for read-only attribute '_p_err'
+        Getter for read-only attribute `_p_err`
         """
         return self._p_err
     
@@ -45,7 +49,7 @@ class Layer(nn.Module):
     @property
     def p_drv(self):
         """
-        Getter for read-only attribute '_p_drv'
+        Getter for read-only attribute `_p_drv`
         """
         return self._p_drv
     
@@ -53,7 +57,7 @@ class Layer(nn.Module):
     @property
     def p_reg(self):
         """
-        Getter for read-only attribute '_p_reg'
+        Getter for read-only attribute `_p_reg`
         """
         return self._p_reg
     
@@ -61,7 +65,7 @@ class Layer(nn.Module):
     @property
     def criterion(self):
         """
-        Getter for read-only attribute '_criterion'
+        Getter for read-only attribute `_criterion`
         """
         return self._criterion
     
@@ -69,7 +73,7 @@ class Layer(nn.Module):
     @property
     def dim_in(self):
         """
-        Getter for read-only attribute '_dim_in'
+        Getter for read-only attribute `_dim_in`
         """
         return self._dim_in
 
@@ -77,7 +81,7 @@ class Layer(nn.Module):
     @property
     def dim_out(self):
         """
-        Getter for read-only attribute '_dim_out'
+        Getter for read-only attribute `_dim_out`
         """
         return self._dim_out
 
@@ -85,7 +89,7 @@ class Layer(nn.Module):
     @property
     def data(self):
         """
-        Getter for read-only attribute '_data'
+        Getter for read-only attribute `_data`
         """
         return self._data
 
@@ -93,10 +97,62 @@ class Layer(nn.Module):
     @data.setter
     def data(self, value):
         """
-        Setter for read-only attribute '_data'
+        Setter for read-only attribute `_data`
         """
         self._data = value
     
+
+    def feat_jac_diag(self, x):
+        """
+        expain
+        """
+        # track the jacobian to x
+        x.requires_grad_(True)
+        # reset the gradient to zero
+        x.grad = torch.zeros_like(x)
+        # store diagonal of jacobian in x.grad
+        for i in range(len(x)): self.feat_fun(x[i]).backward()
+        return torch.squeeze(x.grad)
+
+
+    def ker_grad(self, x, dy, create_graph=False):
+        """
+        explain
+        """
+
+        # grad = torch.empty(size=(len(x), len(dy), ))
+        # # compute gradient dk(xp,yp) for each yp in dy
+        # for xp in x:
+        #     for yp in dy:
+
+
+        # track the gradient to dy
+        dy.requires_grad_(True)
+        # reset the gradient to zero
+        dy.grad = torch.zeros_like(dy)
+        # compute kernel matrix
+        # K = self.ker_fun(dy, x)
+        print(self.ker_fun(dy, x))
+        # return gradient
+        # return torch.autograd.grad(K.chunk(len(K)), dy.chunk(len(dy)))[0]
+        return torch.autograd.grad(self.ker_fun(dy, x), dy)[0]
+
+        # return grad
+        
+
+    def ker_hess(self, dx, dy, create_graph=False):
+        """
+        explain
+        """
+        # track the gradient to dx and dy
+        dx.requires_grad_(True)
+        dy.requires_grad_(True)
+        # reset the gradient to zero
+        dx.grad = torch.zeros_like(dx)
+        dy.grad = torch.zeros_like(dy)
+        # return cross hessian
+        return torch.autograd.functional.hessian(self.ker_fun, (dx,dy))[0][1]
+
 
     @staticmethod
     def build_feature_map(type, param):
@@ -123,63 +179,21 @@ class Layer(nn.Module):
 
 
     @staticmethod
-    def build_feature_jacobian(type, param):
-        """
-        explain
-        """
-        if type.lower() == "tanh":
-            return lambda x : torch.cat([torch.diag(1./torch.cosh(x[p,:])**2) for p in range(x.shape[0])], dim=1), \
-                   lambda x : 1./torch.cosh(x)**2
-
-        elif type.lower() == "linear":
-            return lambda x : torch.eye(x.shape[1]).repeat(1,x.shape[0]), \
-                   lambda x : torch.ones_like(x)
-
-        elif type.lower() == "sign":
-            return lambda x : torch.zeros(x.shape[1], torch.numel(x)), \
-                   lambda x : torch.zeros_like(x)
-
-        elif type.lower() == "relu":
-            return lambda x : torch.cat([torch.diag(torch.round(torch.sigmoid(x[p,:]))) for p in range(x.shape[0])], dim=1), \
-                   lambda x : torch.round(torch.sigmoid(x))
-
-        elif type.lower() == "tanhshrink":
-            return lambda x : torch.cat([torch.diag(torch.tanh(x[p,:])**2) for p in range(x.shape[0])], dim=1), \
-                   lambda x : torch.tanh(x)**2
-
-        else:
-            raise ValueError("Did not understand the name of the feature map.")
-
-
-    @staticmethod
     def build_kernel(type, param):
         """
-        explain
+        x   bs1 x N
+        y   bs2 x N
+        out bs1 x bs2
         """
         if type.lower() == "rbf":
             # from https://jejjohnson.github.io/research_journal/snippets/pytorch/rbf_kernel/
-            return lambda x, y : torch.exp(-.5*torch.sum((x[:,None,:]-y[None,:,:])**2,2)/param**2)
-        
-        elif type.lower() == "poly":
-            return lambda x, y : (x@y.t()+1)**param
-        
-        else:
-            raise ValueError("Did not understand the name of the kernel function.")
-
-
-    @staticmethod
-    def build_kernel_grad_hess(type, param):
-        """
-        explain
-        """
-        if type.lower() == "rbf":
-            return lambda x, dy : Layer.build_kernel(type, param)(x, dy)*(x-dy)/param**2, \
-                   lambda dx, dy : 
+            return lambda x, y : torch.squeeze(torch.exp(-.5*torch.sum((x[:,None,:]-y[None,:,:])**2,2)/param**2))
+            # return 
 
         elif type.lower() == "poly":
-            return lambda x, dy : param*(x@dy.t()+1)**(param-1)*x, \
-                   lambda x, dy : 
-
+            return lambda x, y : ((x@y.t()+1)**param).view(-1)
+            # place torch.view on x and y
+        
         else:
             raise ValueError("Did not understand the name of the kernel function.")
 
@@ -223,10 +237,10 @@ class LayerPrimal(Layer):
         super(LayerPrimal, self).__init__(**kwargs)
 
         # layer feature map
-        self._feat_map   = kwargs.get('feat_map', 'linear')
-        self._feat_param = kwargs.get('feat_param', None)
-        self.map = Layer.build_feature_map(self._feat_map, self._feat_param)
-        self.map_jac, self.map_jac_diag = Layer.build_feature_jacobian(self._feat_map, self._feat_param)
+        self._feature_map   = kwargs.get('feature_map', 'linear')
+        self._feature_param = kwargs.get('feature_param', None)
+        self.feat_fun = Layer.build_feature_map(self._feature_map, self._feature_param)
+        # self.map_jac, self.map_jac_diag = Layer.build_feature_jacobian(self._feat_map, self._feat_param)
         # layer parameters
         self._weights = None
         self._bias = None
@@ -236,29 +250,30 @@ class LayerPrimal(Layer):
         """
         explain
         """
-        return f"Primal layer with feature map '{self.feat_map} ({self.feat_param})' and p_err={self.p_err}, p_drv={self.p_drv}, p_reg={self.p_reg}."
+        return f"Primal layer with feature map '{self.feature_map} ({self.feature_param})'\n \
+                 and hyper-parameters p_err={self.p_err}, p_drv={self.p_drv}, p_reg={self.p_reg}."
 
 
     @property
-    def feat_map(self):
+    def feature_map(self):
         """
-        Getter for read-only attribute '_feat_map'
+        Getter for read-only attribute `_feature_map`
         """
-        return self._feat_map
+        return self._feature_map
     
 
     @property
-    def feat_param(self):
+    def feature_param(self):
         """
-        Getter for read-only attribute '_feat_param'
+        Getter for read-only attribute `_feature_param`
         """
-        return self._feat_param
+        return self._feature_param
 
 
     @property
     def weights(self):
         """
-        Getter for read-only attribute '_weights'
+        Getter for read-only attribute `_weights`
         """
         return self._weights
 
@@ -266,28 +281,28 @@ class LayerPrimal(Layer):
     @property
     def bias(self):
         """
-        Getter for read-only attribute '_bias'
+        Getter for read-only attribute `_bias`
         """
         return self._bias
 
     
-    def init_parameters(self, data):
+    def init_parameters(self, num_data):
         """
         explain
         """
         # store data
-        self.data = data
+        # self.data = data
         # initialize layer parameters
-        dim_feat = Layer.dimension_feature_space(self.dim_in, self.feat_map)
-        self._weights = nn.Parameter(nn.init.xavier_uniform_(torch.Tensor(dim_feat, self.dim_out)), requires_grad=True)
-        self._bias = nn.Parameter(nn.init.zeros_(torch.Tensor(self.dim_out,)), requires_grad=True)
+        dim_feat = Layer.dimension_feature_space(self.dim_in, self.feature_map)
+        self._weights = nn.Parameter(self._w_init(torch.Tensor(dim_feat, self.dim_out)), requires_grad=True)
+        self._bias = nn.Parameter(self._b_init(torch.Tensor(self.dim_out,)), requires_grad=True)
 
 
-    def forward(self, x):
+    def forward(self, x, **kwargs):
         """
         explain
         """
-        return torch.matmul(self.map(x), self.weights) + self.bias
+        return torch.matmul(self.feat_fun(x), self.weights) + self.bias
 
 
     def loss(self, x, y):
@@ -297,11 +312,11 @@ class LayerPrimal(Layer):
         # equilibrium objective
         e = self.criterion(self.forward(x), y)
         # local stability objective
-        s = sum([torch.norm(self.weights.t()*j_diag, p='fro') for j_diag in self.map_jac_diag(x)])
+        s = sum([torch.norm(self.weights.t()*j_diag, p='fro') for j_diag in self.feat_jac_diag(x)])
         # regularisation objective
         r = torch.norm(self.weights, p='fro')
         # return weighted sum of objectives 
-        return self.p_err*e + self.p_drv*s + self.p_reg*r
+        return (self.p_err*e + self.p_drv*s + self.p_reg*r)/2.
 
 # end class LayerPrimal
 
@@ -321,8 +336,8 @@ class LayerDual(Layer):
         # layer kernel
         self._kernel = kwargs.get('kernel', 'rbf')
         self._kernel_param = kwargs.get('kernel_param', 1.)
-        self.ker = Layer.build_kernel(self._kernel, self._kernel_param)
-        self.ker_grad, self.ker_hess = Layer.build_kernel_grad_hess(self._kernel, self._kernel_param)
+        self.ker_fun = Layer.build_kernel(self._kernel, self._kernel_param)
+        # self.ker_grad, self.ker_hess = Layer.build_kernel_grad_hess(self._kernel, self._kernel_param)
         # layer parameters
         self._weights_err = None
         self._weights_drv = None
@@ -333,13 +348,14 @@ class LayerDual(Layer):
         """
         explain
         """
-        return f"Dual layer with kernel '{self.kernel} ({self.kernel_param})' and p_err={self.p_err}, p_drv={self.p_drv}, p_reg={self.p_reg}."
+        return f"Dual layer with kernel '{self.kernel} ({self.kernel_param})'\n \
+                 and hyper-parameters p_err={self.p_err}, p_drv={self.p_drv}, p_reg={self.p_reg}."
 
 
     @property
     def kernel(self):
         """
-        Getter for read-only attribute '_kernel'
+        Getter for read-only attribute `_kernel`
         """
         return self._kernel
     
@@ -347,7 +363,7 @@ class LayerDual(Layer):
     @property
     def kernel_param(self):
         """
-        Getter for read-only attribute '_kernel_param'
+        Getter for read-only attribute `_kernel_param`
         """
         return self._kernel_param
 
@@ -355,7 +371,7 @@ class LayerDual(Layer):
     @property
     def weights_err(self):
         """
-        Getter for read-only attribute '_weights_err'
+        Getter for read-only attribute `_weights_err`
         """
         return self._weights_err
     
@@ -363,7 +379,7 @@ class LayerDual(Layer):
     @property
     def weights_drv(self):
         """
-        Getter for read-only attribute '_weights_drv'
+        Getter for read-only attribute `_weights_drv`
         """
         return self._weights_drv
 
@@ -371,42 +387,70 @@ class LayerDual(Layer):
     @property
     def bias(self):
         """
-        Getter for read-only attribute '_bias'
+        Getter for read-only attribute `_bias`
         """
         return self._bias
 
     
-    def init_parameters(self, data):
+    def init_parameters(self, num_data):
         """
         explain
         """
-        # store data
-        self.data = data
         # initialize layer parameters
-        self._weights_err = nn.Parameter(nn.init.xavier_uniform_(torch.Tensor(self.dim_out, data.shape[0])), requires_grad=True)
-        self._weights_drv = nn.Parameter(nn.init.xavier_uniform_(torch.Tensor(self.dim_out, self.dim_in*data.shape[0])), requires_grad=True)
-        self._bias = nn.Parameter(nn.init.zeros_(torch.Tensor(self.dim_out,)), requires_grad=True)
+        self._weights_err = nn.Parameter(self._w_init(torch.Tensor(num_data, self.dim_out)), requires_grad=True)
+        self._weights_drv = nn.Parameter(self._w_init(torch.Tensor(num_data, self.dim_out, self.dim_in)), requires_grad=True)
+        self._bias = nn.Parameter(self._b_init(torch.Tensor(self.dim_out,)), requires_grad=True)
 
 
-    def forward(self, x):
+    def forward(self, x, **kwargs):
         """
         explain
         """
-        return (self.weights_err@self.ker(self.data, x) + self.weights_drv@self.ker_grad(x, self.data))/self.p_reg + self.bias
+        print(x)
+
+        # new output value
+        x_new = torch.zeros_like(x)
+        # sum over all data points
+        for p, xp in enumerate(kwargs["base"]):
+            # kernel term
+            x_new += torch.outer(self.ker_fun(x, xp), self.weights_err[p,:])
+            # kernel grad term
+            x_new = self.weights_drv[p,:,:] @ self.ker_grad(xp, x)
+
+        return x_new/self.p_reg + self.bias
+        # return (self.weights_err@self.ker(self.data, x) + self.weights_drv@self.ker_grad(x, self.data))/self.p_reg + self.bias
 
 
     def loss(self, x, y):
         """
         explain
         """
-        # # equilibrium objective
-        # e = self.criterion(self.forward(x), y)
-        # # local stability objective
-        # s = sum([torch.norm(self.weights.t()*j_diag, p='fro') for j_diag in self.map_jac_diag(x)])
-        # # regularisation objective
-        # r = torch.norm(self.weights, p='fro')
-        # # return weighted sum of objectives 
-        # return self.p_err*e + self.p_drv*s + self.p_reg*r
-        pass
+ 
+        l_err = torch.norm(self.weights_err, p='fro')
+        l_drv = torch.norm(self.weights_drv, p='fro')
+
+        l_ker = 0
+        for p, xp in enumerate(x):
+            l_ker += self.ker_fun(xp, xp)*self.weights_err[p,:]@self.weights_err[p,:]
+            for p_, xp_ in enumerate(x[:p,:]):
+                l_ker += 2*self.ker_fun(xp, xp_)*self.weights_err[p,:]@self.weights_err[p_,:]
+
+        l_hess = 0
+        for p, xp in enumerate(x):
+            l_hess += torch.trace(self.ker_hess(xp, xp)@self.weights_drv[p,:,:].t()@self.weights_drv[p,:,:])
+            for p_, xp_ in enumerate(x[:p,:]):
+                l_hess += 2*torch.trace(self.ker_hess(xp, xp_)@self.weights_drv[p,:,:].t()@self.weights_drv[p_,:,:])
+
+        l_cross = 0
+        for p, xp in enumerate(x):
+            for p_, xp_ in enumerate(x):
+                grad = self.ker_grad(xp_, xp)
+                for i in range(self.dim_in):
+                    l_cross += grad[i]*self.weights_err[p_,:]@self.weights_drv[p,:,i]
+        
+        l_y = torch.sum((y-self.bias)@self.weights_err.t())
+
+        # we want to maximize this objective => return negative loss
+        return l_err/2/self.p_err + l_drv/2/self.p_drv + (l_ker+l_hess+2*l_cross)/2/self.p_reg - l_y 
 
 # end class LayerDual

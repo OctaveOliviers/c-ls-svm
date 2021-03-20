@@ -2,7 +2,7 @@
 # @Created by: OctaveOliviers
 # @Created on: 2021-01-28 12:10:12
 # @Last Modified by: OctaveOliviers
-# @Last Modified on: 2021-02-03 18:52:42
+# @Last Modified on: 2021-03-17 16:59:17
 
 
 # import libraries
@@ -15,13 +15,14 @@ import tkinter
 # def main():
 
 # create patterns
-x = torch.Tensor([[2], [7]])
+x = torch.Tensor([[2], [7], [-7]])
 
 
 # build model
 model = CLSSVM()
-model.add_layer(space='primal', dim_in=1, dim_out=1, feat_map='linear', p_err=1e2, p_drv=1e0, p_reg=1e-1)
-model.add_layer(space='primal', dim_in=1, dim_out=1, feat_map='tanh', p_err=1e2, p_drv=1e1, p_reg=1e-1)
+model.add_layer(space='primal', dim_in=1, dim_out=4, feature_map='linear', p_err=1e2, p_drv=1e0, p_reg=1e-1)
+model.add_layer(space='primal', dim_in=4, dim_out=3, feature_map='tanh', p_err=1e2, p_drv=1e1, p_reg=1e-1)
+model.add_layer(space='dual', dim_in=3, dim_out=1, kernel='poly', kernel_param=2, p_err=1e2, p_drv=1e1, p_reg=1e-1)
 
 
 # train model
@@ -31,7 +32,7 @@ print("Training on", device)
 # load data and model to device
 x.to(device)
 model.to(device)
-model.custom_train(x,x, max_iter=10000)
+model.custom_train(x, x, max_iter=100)
 
 
 # visualize update equation

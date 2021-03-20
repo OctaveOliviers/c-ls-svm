@@ -2,7 +2,7 @@
 # @Created by: OctaveOliviers
 # @Created on: 2021-01-28 12:13:39
 # @Last Modified by: OctaveOliviers
-# @Last Modified on: 2021-02-03 18:49:32
+# @Last Modified on: 2021-03-17 13:15:51
 
 
 # import libraries
@@ -64,8 +64,9 @@ class CLSSVM(nn.Module):
         """
         explain
         """
-        for layer in self.layers:
-            x = layer.forward(x)
+        x = self.layers[0].forward(x, base=x)
+        for i, layer in enumerate(self.layers[1:]):
+            x = layer.forward(x, base=self.targets[i])
         return x
 
 
@@ -77,8 +78,8 @@ class CLSSVM(nn.Module):
         l = 0
         # sum losses of each layer
         l += self.layers[0].loss(x,self.targets[0])
-        for i in range(1,len(self.layers)):
-            l += self.layers[i].loss(self.targets[i-1],self.targets[i])
+        for i, layer in enumerate(self.layers[1:]):
+            l += layer.loss(self.targets[i],self.targets[i+1])
         return l
 
 
@@ -99,17 +100,17 @@ class CLSSVM(nn.Module):
 
         # initialize the parameters in each layer and build targets
         for layer in self.layers:
+            # build layer targets
+            self.targets.append(nn.Parameter(nn.init.normal_(torch.Tensor(x.shape[0],layer.dim_out)), requires_grad=True))
             # initialize parameters
             layer.init_parameters(x.shape[0])
             # update model parameters
             self.parameters = chain(self.parameters, layer.parameters())
-            # build layer targets
-            self.targets.append(nn.Parameter(nn.init.normal_(torch.Tensor(x.shape[0],layer.dim_out)), requires_grad=True))
         # set target of last layer to y
         self.targets[-1] = y
 
         # update optimizer
-        self.opt = torch.optim.Adam(chain(self.parameters, iter(self.targets)), lr=0.001)
+        self.opt = torch.optim.Adam(chain(self.parameters, iter(self.targets[:-1])), lr=0.001)
 
         print(f"First loss value = {self.loss(x,y)}")
 
@@ -121,3 +122,7 @@ class CLSSVM(nn.Module):
             self.opt.step()
 
         print(f"Final loss value = {self.loss(x,y)}")
+
+        # self.layers[0].data = x
+        # for i, layer in enumerate(self.layers[1:]):
+        #     layer.data = self.targets[i]
