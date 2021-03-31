@@ -2,7 +2,7 @@
 # @Created by: OctaveOliviers
 # @Created on: 2021-01-28 12:13:54
 # @Last Modified by: OctaveOliviers
-# @Last Modified on: 2021-03-17 17:15:36
+# @Last Modified on: 2021-03-31 15:20:01
 
 
 # import libraries
@@ -111,34 +111,25 @@ class Layer(nn.Module):
         # reset the gradient to zero
         x.grad = torch.zeros_like(x)
         # store diagonal of jacobian in x.grad
-        for i in range(len(x)): self.feat_fun(x[i]).backward()
+        self.feat_fun(x).backward(torch.ones_like(x))
         return torch.squeeze(x.grad)
 
 
-    def ker_grad(self, x, dy, create_graph=False):
+    def ker_grad(self, x, dy):
         """
         explain
         """
-
-        # grad = torch.empty(size=(len(x), len(dy), ))
-        # # compute gradient dk(xp,yp) for each yp in dy
-        # for xp in x:
-        #     for yp in dy:
-
-
         # track the gradient to dy
         dy.requires_grad_(True)
         # reset the gradient to zero
         dy.grad = torch.zeros_like(dy)
-        # compute kernel matrix
-        # K = self.ker_fun(dy, x)
-        print(self.ker_fun(dy, x))
-        # return gradient
-        # return torch.autograd.grad(K.chunk(len(K)), dy.chunk(len(dy)))[0]
-        return torch.autograd.grad(self.ker_fun(dy, x), dy)[0]
+        # retain gradient wrt second input
+        grads = torch.squeeze(torch.autograd.functional.jacobian(self.ker_fun, (x,dy))[1])
+        if self.dim_in == 1: 
+            return grads.unsqueeze(-1)
+        else:
+            return grads
 
-        # return grad
-        
 
     def ker_hess(self, dx, dy, create_graph=False):
         """
@@ -186,13 +177,27 @@ class Layer(nn.Module):
         out bs1 x bs2
         """
         if type.lower() == "rbf":
-            # from https://jejjohnson.github.io/research_journal/snippets/pytorch/rbf_kernel/
-            return lambda x, y : torch.squeeze(torch.exp(-.5*torch.sum((x[:,None,:]-y[None,:,:])**2,2)/param**2))
-            # return 
+                        
+            def rbf_ker(x, y):
+                # from https://jejjohnson.github.io/research_journal/snippets/pytorch/rbf_kernel/
+                if len(x.shape) == 1:
+                    x = x.unsqueeze(0)
+                if len(y.shape) == 1:
+                    y = y.unsqueeze(0)
+                return torch.exp(-.5*torch.sum((x[:,None,:]-y[None,:,:])**2,2)/param**2)
+
+            return rbf_ker
 
         elif type.lower() == "poly":
-            return lambda x, y : ((x@y.t()+1)**param).view(-1)
-            # place torch.view on x and y
+
+            def poly_ker(x, y):
+                if len(x.shape) == 1:
+                    x = x.unsqueeze(0)
+                if len(y.shape) == 1:
+                    y = y.unsqueeze(0)
+                return torch.pow(x@y.t()+1, param)
+
+            return poly_ker
         
         else:
             raise ValueError("Did not understand the name of the kernel function.")
@@ -290,8 +295,6 @@ class LayerPrimal(Layer):
         """
         explain
         """
-        # store data
-        # self.data = data
         # initialize layer parameters
         dim_feat = Layer.dimension_feature_space(self.dim_in, self.feature_map)
         self._weights = nn.Parameter(self._w_init(torch.Tensor(dim_feat, self.dim_out)), requires_grad=True)
@@ -406,19 +409,17 @@ class LayerDual(Layer):
         """
         explain
         """
-        print(x)
-
         # new output value
         x_new = torch.zeros_like(x)
         # sum over all data points
-        for p, xp in enumerate(kwargs["base"]):
+        for p, xp in enumerate(kwargs["targets"]):
             # kernel term
-            x_new += torch.outer(self.ker_fun(x, xp), self.weights_err[p,:])
+            x_new += self.ker_fun(x, xp) * self.weights_err[p,:]
             # kernel grad term
-            x_new = self.weights_drv[p,:,:] @ self.ker_grad(xp, x)
+            # x_new += self.weights_drv[p,:,:] @ self.ker_grad(xp, x)
+            x_new += self.ker_grad(x, xp) @ self.weights_drv[p,:,:].t()
 
         return x_new/self.p_reg + self.bias
-        # return (self.weights_err@self.ker(self.data, x) + self.weights_drv@self.ker_grad(x, self.data))/self.p_reg + self.bias
 
 
     def loss(self, x, y):
@@ -429,28 +430,29 @@ class LayerDual(Layer):
         l_err = torch.norm(self.weights_err, p='fro')
         l_drv = torch.norm(self.weights_drv, p='fro')
 
-        l_ker = 0
+        l_ker = 0.
         for p, xp in enumerate(x):
             l_ker += self.ker_fun(xp, xp)*self.weights_err[p,:]@self.weights_err[p,:]
             for p_, xp_ in enumerate(x[:p,:]):
                 l_ker += 2*self.ker_fun(xp, xp_)*self.weights_err[p,:]@self.weights_err[p_,:]
 
-        l_hess = 0
+        l_hess = 0.
         for p, xp in enumerate(x):
             l_hess += torch.trace(self.ker_hess(xp, xp)@self.weights_drv[p,:,:].t()@self.weights_drv[p,:,:])
             for p_, xp_ in enumerate(x[:p,:]):
                 l_hess += 2*torch.trace(self.ker_hess(xp, xp_)@self.weights_drv[p,:,:].t()@self.weights_drv[p_,:,:])
 
-        l_cross = 0
+        l_cross = 0.
         for p, xp in enumerate(x):
             for p_, xp_ in enumerate(x):
                 grad = self.ker_grad(xp_, xp)
-                for i in range(self.dim_in):
-                    l_cross += grad[i]*self.weights_err[p_,:]@self.weights_drv[p,:,i]
+                # for i in range(self.dim_in):
+                #     l_cross += grad[i]*self.weights_err[p_,:]@self.weights_drv[p,:,i]
+                l_cross += torch.sum(self.weights_err[p_,:]@self.weights_drv[p,:,:]*grad)
         
         l_y = torch.sum((y-self.bias)@self.weights_err.t())
 
         # we want to maximize this objective => return negative loss
-        return l_err/2/self.p_err + l_drv/2/self.p_drv + (l_ker+l_hess+2*l_cross)/2/self.p_reg - l_y 
+        return torch.squeeze(l_err/2/self.p_err + l_drv/2/self.p_drv + (l_ker+l_hess+2*l_cross)/2/self.p_reg - l_y)
 
 # end class LayerDual

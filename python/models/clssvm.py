@@ -2,7 +2,7 @@
 # @Created by: OctaveOliviers
 # @Created on: 2021-01-28 12:13:39
 # @Last Modified by: OctaveOliviers
-# @Last Modified on: 2021-03-17 13:15:51
+# @Last Modified on: 2021-03-31 14:23:11
 
 
 # import libraries
@@ -33,6 +33,8 @@ class CLSSVM(nn.Module):
         self.parameters = []
         # model targets for each layer
         self.targets = []
+        # model input data
+        self.data_in = None
 
 
     def __str__(self):
@@ -64,9 +66,9 @@ class CLSSVM(nn.Module):
         """
         explain
         """
-        x = self.layers[0].forward(x, base=x)
+        x = self.layers[0].forward(x, targets=self.targets[-1])
         for i, layer in enumerate(self.layers[1:]):
-            x = layer.forward(x, base=self.targets[i])
+            x = layer.forward(x, targets=self.targets[i])
         return x
 
 
@@ -79,11 +81,11 @@ class CLSSVM(nn.Module):
         # sum losses of each layer
         l += self.layers[0].loss(x,self.targets[0])
         for i, layer in enumerate(self.layers[1:]):
-            l += layer.loss(self.targets[i],self.targets[i+1])
+            l += layer.loss(self.targets[i], self.targets[i+1])
         return l
 
 
-    def custom_train(self, x, y, max_iter=1000):
+    def custom_train(self, x, y, max_iter=10**3):
         """
         explain
         """
