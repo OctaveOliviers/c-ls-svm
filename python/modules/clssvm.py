@@ -2,14 +2,13 @@
 # @Created by: OctaveOliviers
 # @Created on: 2021-01-28 12:13:39
 # @Last Modified by: OctaveOliviers
-# @Last Modified on: 2021-03-31 14:23:11
+# @Last Modified on: 2021-04-01 11:09:12
 
 
 # import libraries
 import torch
 import torch.nn as nn
-from utils import *
-from models.layer import *
+from modules.layer import *
 from itertools import chain
 from tqdm import trange
 

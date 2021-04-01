@@ -2,17 +2,15 @@
 # @Created by: OctaveOliviers
 # @Created on: 2021-01-28 12:13:54
 # @Last Modified by: OctaveOliviers
-# @Last Modified on: 2021-03-31 15:20:01
+# @Last Modified on: 2021-03-31 18:24:42
 
 
 # import libraries
 import torch
 import torch.nn as nn
-import gpytorch.kernels as gpk
-from utils import *
+from abc import ABCMeta
 
-
-class Layer(nn.Module):
+class Layer(nn.Module, metaclass=ABCMeta):
     """
     docstring for Layer
     """
@@ -34,9 +32,10 @@ class Layer(nn.Module):
         self._dim_out    = kwargs['dim_out']
         # data to train on
         self._data       = None
-        # 
+        # parameter initialisation functions
         self._w_init     = getattr(nn.init, "xavier_uniform_")
         self._b_init     = getattr(nn.init, "zeros_")
+
 
     @property
     def p_err(self):

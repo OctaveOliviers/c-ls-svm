@@ -2,38 +2,34 @@
 # @Created by: OctaveOliviers
 # @Created on: 2021-01-28 12:10:12
 # @Last Modified by: OctaveOliviers
-# @Last Modified on: 2021-03-31 15:26:37
+# @Last Modified on: 2021-03-31 18:13:52
 
 
 # import libraries
-from models.clssvm import *
+from modules.clssvm import *
 import torch
 import matplotlib.pyplot as plt
 import tkinter
 
-
-# def main():
+# training on cpu or cuda
+cuda = False
+device = torch.device('cuda' if torch.cuda.is_available() and cuda else 'cpu')
+print("Training on", device)
 
 # create patterns
-x = torch.Tensor([[2], [7], [-7], [1]])
-
+x = torch.Tensor([[2], [7], [-7], [1]]).to(device)
 
 # build model
 model = CLSSVM()
 # model.add_layer(space='primal', dim_in=1, dim_out=3, feature_map='linear',          p_err=1e2, p_drv=1e0, p_reg=1e-2)
 # model.add_layer(space='primal', dim_in=3, dim_out=1, feature_map='tanh',            p_err=1e2, p_drv=1e0, p_reg=1e-2)
-model.add_layer(space='dual',   dim_in=1, dim_out=1, kernel='rbf', kernel_param=0.5, p_err=1e2, p_drv=1e0, p_reg=1e-2)
-
+model.add_layer(space='dual',   dim_in=1, dim_out=1, kernel='rbf', kernel_param=5, p_err=1e2, p_drv=1e2, p_reg=1e-2)
+model.to(device)
 
 # train model
-cuda = False
-device = torch.device('cuda' if torch.cuda.is_available() and cuda else 'cpu')
-print("Training on", device)
-# load data and model to device
-x.to(device)
-model.to(device)
 model.custom_train(x, x, max_iter=10**3)
 
+# time functions to find bottleneck
 
 # visualize update equation
 x_min, x_prec, x_max = -10, 0.1, 10
