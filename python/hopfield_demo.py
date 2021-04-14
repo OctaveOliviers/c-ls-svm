@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # @Created by: OctaveOliviers
 # @Created on: 2021-03-31 15:26:59
-# @Last Modified by: OctaveOliviers
+# @Last modified by:   octave
 # @Last Modified on: 2021-04-01 11:09:05
 
 # requires repo github.com/ml-jku/hopfield-layers saved in folder `hopfield_layers`

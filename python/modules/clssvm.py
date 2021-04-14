@@ -11,6 +11,7 @@ import torch.nn as nn
 from modules.layer import *
 from itertools import chain
 from tqdm import trange
+import numbers
 
 
 class CLSSVM(nn.Module):
@@ -18,7 +19,10 @@ class CLSSVM(nn.Module):
     docstring for CLSSVM
     """
 
-    def __init__(self, cuda=False):
+    def __init__(
+            self,
+            device:str='cpu'
+    ):
         """
         explain
         """
@@ -34,16 +38,19 @@ class CLSSVM(nn.Module):
         self.targets = []
         # model input data
         self.data_in = None
+        # training device
+        self.device = device
 
-
-    def __str__(self):
+    def __str__(self) -> str:
         """
         explain
         """
         return f"C-LS-SVM with {len(self.layers)} layers"
 
-
-    def add_layer(self, **kwargs):
+    def add_layer(
+            self,
+            **kwargs
+    ) -> None:
         """
         explain
         """
@@ -59,9 +66,11 @@ class CLSSVM(nn.Module):
             raise ValueError('Did not understand the space of the layer')
         # store new layer
         self.layers.append(layer)
-        
 
-    def forward(self, x):
+    def forward(
+            self,
+            x:torch.Tensor
+    ) -> torch.Tensor:
         """
         explain
         """
@@ -70,8 +79,11 @@ class CLSSVM(nn.Module):
             x = layer.forward(x, targets=self.targets[i])
         return x
 
-
-    def loss(self, x, y):
+    def loss(
+            self,
+            x:torch.Tensor,
+            y:torch.Tensor
+    ) -> numbers.Real:
         """
         explain
         """
@@ -84,13 +96,18 @@ class CLSSVM(nn.Module):
         return l
 
 
-    def custom_train(self, x, y, max_iter=10**3):
+    def custom_train(
+            self,
+            x:torch.Tensor,
+            y:torch.Tensor,
+            max_iter:int=10**3
+    ) -> None:
         """
         explain
         """
-        # ensure inputs are torch.Tensor objects
-        x = torch.Tensor(x)
-        y = torch.Tensor(y)
+        # # ensure inputs are torch.tensor objects
+        # x = torch.Tensor(x)
+        # y = torch.Tensor(y)
 
         # assert that x and the first layer have the same dimension
         assert self.layers[0].dim_in==x.shape[1], \
@@ -102,9 +119,9 @@ class CLSSVM(nn.Module):
         # initialize the parameters in each layer and build targets
         for layer in self.layers:
             # build layer targets
-            self.targets.append(nn.Parameter(nn.init.normal_(torch.Tensor(x.shape[0],layer.dim_out)), requires_grad=True))
+            self.targets.append(nn.Parameter(nn.init.normal_(torch.Tensor(x.shape[0],layer.dim_out).to(self.device)), requires_grad=True))
             # initialize parameters
-            layer.init_parameters(x.shape[0])
+            layer.init_parameters(x.shape[0], device=self.device)
             # update model parameters
             self.parameters = chain(self.parameters, layer.parameters())
         # set target of last layer to y
@@ -116,7 +133,7 @@ class CLSSVM(nn.Module):
         print(f"First loss value = {self.loss(x,y)}")
 
         # start training
-        for epoch in trange(max_iter):
+        for _ in trange(max_iter):
             self.opt.zero_grad()
             loss = self.loss(x,y)
             loss.backward()
