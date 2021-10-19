@@ -28,7 +28,7 @@ function [x_opt, varargout] = gradient_descent( objective_fcn, gradient_fcn, x_0
         end
 
         % backtracking
-        b = 0.1 ; % not unity to break symmetry
+        b = 0.9 ; % not unity to break symmetry
         for k = 1:max_back_track
             % store canditate new solution
             x_c = update_solution( x_opt, b, grad ) ;
@@ -36,7 +36,7 @@ function [x_opt, varargout] = gradient_descent( objective_fcn, gradient_fcn, x_0
             % check if objective value improves
             obj_new = objective_fcn( x_c ) ;
             if ( obj_new > obj_best )
-                b = b/2 ;                  
+                b = b/2 ;
             else
                 break
             end

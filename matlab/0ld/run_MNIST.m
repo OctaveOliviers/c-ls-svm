@@ -41,10 +41,10 @@ num_to_avg_over = 1 ;
 % test_img  (i, j, k) : i <= 20,    j <= 20, k <= 10000
 % train_lbl (i, j)    : i <= 60000, j <= 1
 % test_lbl  (i, j)    : i <= 10000, j <= 1
-train_img_file  = 'data/MNIST/train-images.idx3-ubyte';
-train_lbl_file  = 'data/MNIST/train-labels-idx1-ubyte';
-test_img_file   = 'data/MNIST/t10k-images-idx3-ubyte';
-test_lbl_file   = 'data/MNIST/t10k-labels-idx1-ubyte';
+train_img_file  = '../data/MNIST/train-images.idx3-ubyte';
+train_lbl_file  = '../data/MNIST/train-labels-idx1-ubyte';
+test_img_file   = '../data/MNIST/t10k-images-idx3-ubyte';
+test_lbl_file   = '../data/MNIST/t10k-labels-idx1-ubyte';
 % read data sets
 [train_img, train_lbl] = readMNIST( train_img_file, train_lbl_file, siz_load + siz_val, 0 ) ;
 [test_img,  test_lbl]  = readMNIST( test_img_file,  test_lbl_file,  siz_test, 0 ) ;
@@ -82,42 +82,42 @@ else
     labels   = lab_train(rand_idx) ;
 end
 
-% select means of each group
-% [patterns, labels] = select_means( img_train, lab_train, num_protos, 'rbf', 0 ) ;
-
-% select principal components
-% sig = 0.1 ;
-% patterns = select_KPCA( train_img, train_lbl, num_protos, 'RBF', sig ) ;
-
-% patterns = reshape( patterns, [num_neurons, num_protos*size(patterns, 3)] ) ;
-
-% % select number to store one specific digit
-% selected = 0 ;
-% idx = find( lab_train == selected ) ;
-% patterns = img_train( :, idx(1:siz_train) ) ;
-
-disp("patterns selected")
-
-% visualize chosen patterns
-figure('position', [100, 100, 1000, num_protos*100])
-for i = 1:size(patterns, 2)
-  for j = 1:num_protos
-      subplot( num_protos, size(patterns, 2), (j-1)*size(patterns, 2) + i )
-      plot_image( patterns(:, i), size_image, " " )
-  end
-end
-% sgtitle( num2str(sig) )
-
-
-%% compute L2 distance between selected patterns
-% dist = zeros(10, 10) ;
-% for k = 0:9
-%     for l = (k+1):9
-%         disp("compare " + num2str(labels(1+k*num_protos)) + "and" + num2str(labels(1+l*num_protos)))
-%         dist(k+1, l+1) = phiTphi( patterns(:, 1+k*num_protos), patterns(:, 1+l*num_protos), 'L2' ) ;
-%     end
+% % select means of each group
+% % [patterns, labels] = select_means( img_train, lab_train, num_protos, 'rbf', 0 ) ;
+% 
+% % select principal components
+% % sig = 0.1 ;
+% % patterns = select_KPCA( train_img, train_lbl, num_protos, 'RBF', sig ) ;
+% 
+% % patterns = reshape( patterns, [num_neurons, num_protos*size(patterns, 3)] ) ;
+% 
+% % % select number to store one specific digit
+% % selected = 0 ;
+% % idx = find( lab_train == selected ) ;
+% % patterns = img_train( :, idx(1:siz_train) ) ;
+% 
+% disp("patterns selected")
+% 
+% % visualize chosen patterns
+% figure('position', [100, 100, 1000, num_protos*100])
+% for i = 1:size(patterns, 2)
+%   for j = 1:num_protos
+%       subplot( num_protos, size(patterns, 2), (j-1)*size(patterns, 2) + i )
+%       plot_image( patterns(:, i), size_image, " " )
+%   end
 % end
-% dist
+% % sgtitle( num2str(sig) )
+
+
+% %% compute L2 distance between selected patterns
+% % dist = zeros(10, 10) ;
+% % for k = 0:9
+% %     for l = (k+1):9
+% %         disp("compare " + num2str(labels(1+k*num_protos)) + "and" + num2str(labels(1+l*num_protos)))
+% %         dist(k+1, l+1) = phiTphi( patterns(:, 1+k*num_protos), patterns(:, 1+l*num_protos), 'L2' ) ;
+% %     end
+% % end
+% % dist
 
 %% Build model to memorize patterns
 model = CLSSVM( ) ;
@@ -190,7 +190,6 @@ num_steps = size(path, 3) ;
 dist = phiTphi(patterns, path(:, 1, end), 'L1') ;
 [~,  closest_idx] = sort(dist) ;
 % found_label = mode( labels( closest_idx(1:num_to_avg_over) ) ) ;
-
 
 % PLOT results
 size_x = 150 ;

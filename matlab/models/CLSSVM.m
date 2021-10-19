@@ -21,7 +21,7 @@ classdef CLSSVM
         E                   % value of error in Lagrange function
         J                   % value of jacobian in Lagrange function
         L                   % value of Lagrange function
-        H                   % hidden states of each pattern in each layer
+        % H                   % hidden states of each pattern in each layer
     end
 
     methods
@@ -45,7 +45,7 @@ classdef CLSSVM
                 obj.num_lay   = length(obj.layers) ;
                 % if layers are already trained store their patterns
                 if prod( cellfun(@is_trained, varargin{1}) )
-                    obj.patterns = varargin{1}{1}.X 
+                    obj.patterns = varargin{1}{1}.X ;
                 end
                 %
                 obj.max_iter  = 10 ;
@@ -81,6 +81,7 @@ classdef CLSSVM
             P = size(obj.patterns, 2) ;
         end
 
+        
         % add new layer to model
         function obj = add_layer(obj, varargin)
             % either add individual layer
@@ -135,7 +136,7 @@ classdef CLSSVM
             path(:,1) = {zeros(N,max_steps)} ;
             
             % update state until it has converged
-            for p =1:P
+            for p = 1:P
                 x_old = start(:,p) ;
                 path{p}(:,1) = x_old ;
                 
@@ -150,7 +151,7 @@ classdef CLSSVM
 
                     % check for convergence
                     % if norm(x_old-x_new, 1) <= N*1e-3
-                    if vecnorm(x_old-x_new) <= 1e-3*upd_len
+                    if vecnorm(x_old-x_new) <= 1e-5*upd_len
                         break
                     end
                     % avoid divergence
@@ -159,7 +160,7 @@ classdef CLSSVM
                         break
                     end
 
-                    x_old = x_new ;                
+                    x_old = x_new ;
                 end
                 
                 % remove all the zero columns in path
@@ -314,7 +315,7 @@ classdef CLSSVM
 
         % train model
         function obj = train(obj, X, varargin)
-            % X         patterns to memorize
+            % X     patterns to memorize
 
             assert( obj.num_lay >= 1, "Model has no layers.")
 
@@ -383,7 +384,8 @@ classdef CLSSVM
             % initialize each hidden state randomly
             % [H{:}] = deal( X ) ;
             for l = 1:obj.num_lay-1
-               H(l) = { X + randn( obj.layers{l}.N_out, P ) } 
+                % H(l) = { X + randn( obj.layers{l}.N_out, P ) } ;
+                H(l) = { randn( obj.layers{l}.N_out, P ) } ;
             end
 
             % keep track of evolution through parameter space
@@ -395,12 +397,11 @@ classdef CLSSVM
 
             % keep track of evolution
             fprintf( '          %10s   %7s      %7s  \n','Lagrange', 'sec.', 'grad. norm' ) ;
-            fprintf( '            --------      -----     ---------- \n') ;
+            fprintf( '            --------      ----      ---------- \n') ;
 
             % train the network
-            L_old = inf ;
+            loss_old = inf ;
             for i = 1:obj.max_iter
-
                 % train deep model using the Method of Auxiliary Coordinates
                 % https://arxiv.org/abs/1212.5921
 
@@ -414,15 +415,15 @@ classdef CLSSVM
                 % update hidden representations with gradient descent
                 fprintf( 'H-step') ; tic
                 %
-                [H, L, g] = gradient_descent( @obj.model_lagrangian, @obj.gradient_lagrangian_wrt_H, H, obj.max_opt, obj.max_back_track ) ;
+                [H, loss, g] = gradient_descent( @obj.model_lagrangian, @obj.gradient_lagrangian_wrt_H, H, obj.max_opt, obj.max_back_track ) ;
                 %
-                fprintf( '      %6.2e      %2.2f       %6.2e \n\n', L, toc, g ) ;
+                fprintf( '      %6.2e      %2.2f       %6.2e \n\n', loss, toc, g ) ;
 
                 % check for convergence
-                if abs(L-L_old) < 1e-3
+                if (abs(loss-loss_old) < 1e-4) && (i >= 5)
                     break
                 end
-                L_old = L ;
+                loss_old = loss ;
 
                 % visualize_lagrange_surface( obj, H, obj.gradient_lagrangian_wrt_H(H) ) ;
                 % pause(2)
@@ -456,79 +457,79 @@ classdef CLSSVM
         end
         
 
-        % compute energy in state X
-        function [E, varargout] = energy(obj, X)
-            % X     states to compute energy, error and eigenvalues for in columns
-
-            warning("Energy function is not correct")
-
-            assert( obj.num_lay == 1, "Energy function not yet implemented for deep models." )
-
-            % extract usefull information
-            [N, P] = size(X) ;
-
-            layer = obj.layers{1} ;
-            switch layer.phi
-                case { 'tanh' }
-                    E = 1/2 * ( vecnorm(X, 2, 1).^2 - 2*diag(layer.W)'*log(cosh(X)) - 2*layer.b'*X ) ;
-
-                
-                case { 'sign' }
-                    E = 1/2 * ( vecnorm(X, 2, 1).^2 - 2*diag(layer.W)'*abs(X) - 2*layer.b'*X ) ;
-
-                case { 'polynomial', 'poly', 'p' }
-                    if ( N==1 )
-                        int_k   = layer.L_e * ( ( layer.X'*X + layer.theta(2) ).^(layer.theta(1)+1) ./ layer.patterns' ) / (layer.theta(1)+1) ;
-                        k       = layer.L_d * ( phiTphi( layer.X, X, layer.phi, layer.theta ) .* X ./ layer.X' ...
-                                            -   phiTphi( layer.X, X, layer.phi, [layer.theta(1)+1, layer.theta(2)] ) ./ (layer.X.^2)' / (layer.theta(1)+1) ) ;
-
-                        E = 1/2 * ( vecnorm(X, 2, 1).^2 - 2/layer.p_reg * (int_k + k) - 2*layer.b'*X ) ;
-                    else
-                        warning('do not know energy formulation yet')
-                        E = zeros(1, P) ;
-                    end
-
-                case { 'gaussian', 'gauss', 'g' }
-                    if ( N==1 )
-
-                        int_k   = layer.theta*sqrt(pi/2) * layer.L_e * erfc( (layer.X' - X) / (sqrt(2)*layer.theta) ) ;
-                        k       = - layer.L_d * phiTphi( layer.X, X, layer.phi, layer.theta ) ;
-
-                        E = ( 1/2 * vecnorm(X, 2, 1).^2 - 1/layer.p_reg * (int_k + k) - layer.b'*X ) ;
-                    else
-                        warning('do not know energy formulation yet')
-                        E = zeros(1, P) ;
-                    end
-
-                otherwise
-                    warning('not exact formulation for energy yet');
-
-                    % error term
-                    err   = obj.model_error( X ) ;
-                    e_kin = vecnorm( err, 2, 1 ).^2 ;
-
-                    % derivative term
-                    e_pot = zeros(1, P) ;
-                    for p = 1:P
-                        J = obj.model_jacobian( X(:, p) ) ;
-                        e_pot(p) = trace( J'*J ) ;
-                    end                 
-
-                    E = obj.p_err/2 * e_kin + obj.p_drv/2 * e_pot ;
-            end
-
-            if (nargout>2)
-                eig_jac = zeros( size(X) );
-                for p = 1:size(X, 2)
-                    eig_jac(:, p) = eig( -obj.model_jacobian( X(:, p) ) ) ;
-                end
-            end         
-
-            if (nargout>1)
-                varargout{1} = vecnorm( obj.model_error( X ), 2, 1 ) ;
-                varargout{2} = eig_jac ;
-            end
-        end
+%         % compute energy in state X
+%         function [E, varargout] = energy(obj, X)
+%             % X     states to compute energy, error and eigenvalues for in columns
+% 
+%             warning("Energy function is not correct")
+% 
+%             assert( obj.num_lay == 1, "Energy function not yet implemented for deep models." )
+% 
+%             % extract usefull information
+%             [N, P] = size(X) ;
+% 
+%             layer = obj.layers{1} ;
+%             switch layer.phi
+%                 case { 'tanh' }
+%                     E = 1/2 * ( vecnorm(X, 2, 1).^2 - 2*diag(layer.W)'*log(cosh(X)) - 2*layer.b'*X ) ;
+% 
+%                 
+%                 case { 'sign' }
+%                     E = 1/2 * ( vecnorm(X, 2, 1).^2 - 2*diag(layer.W)'*abs(X) - 2*layer.b'*X ) ;
+% 
+%                 case { 'polynomial', 'poly', 'p' }
+%                     if ( N==1 )
+%                         int_k   = layer.L_e * ( ( layer.X'*X + layer.theta(2) ).^(layer.theta(1)+1) ./ layer.patterns' ) / (layer.theta(1)+1) ;
+%                         k       = layer.L_d * ( phiTphi( layer.X, X, layer.phi, layer.theta ) .* X ./ layer.X' ...
+%                                             -   phiTphi( layer.X, X, layer.phi, [layer.theta(1)+1, layer.theta(2)] ) ./ (layer.X.^2)' / (layer.theta(1)+1) ) ;
+% 
+%                         E = 1/2 * ( vecnorm(X, 2, 1).^2 - 2/layer.p_reg * (int_k + k) - 2*layer.b'*X ) ;
+%                     else
+%                         warning('do not know energy formulation yet')
+%                         E = zeros(1, P) ;
+%                     end
+% 
+%                 case { 'gaussian', 'gauss', 'g' }
+%                     if ( N==1 )
+% 
+%                         int_k   = layer.theta*sqrt(pi/2) * layer.L_e * erfc( (layer.X' - X) / (sqrt(2)*layer.theta) ) ;
+%                         k       = - layer.L_d * phiTphi( layer.X, X, layer.phi, layer.theta ) ;
+% 
+%                         E = ( 1/2 * vecnorm(X, 2, 1).^2 - 1/layer.p_reg * (int_k + k) - layer.b'*X ) ;
+%                     else
+%                         warning('do not know energy formulation yet')
+%                         E = zeros(1, P) ;
+%                     end
+% 
+%                 otherwise
+%                     warning('not exact formulation for energy yet');
+% 
+%                     % error term
+%                     err   = obj.model_error( X ) ;
+%                     e_kin = vecnorm( err, 2, 1 ).^2 ;
+% 
+%                     % derivative term
+%                     e_pot = zeros(1, P) ;
+%                     for p = 1:P
+%                         J = obj.model_jacobian( X(:, p) ) ;
+%                         e_pot(p) = trace( J'*J ) ;
+%                     end                 
+% 
+%                     E = obj.p_err/2 * e_kin + obj.p_drv/2 * e_pot ;
+%             end
+% 
+%             if (nargout>2)
+%                 eig_jac = zeros( size(X) );
+%                 for p = 1:size(X, 2)
+%                     eig_jac(:, p) = eig( -obj.model_jacobian( X(:, p) ) ) ;
+%                 end
+%             end         
+% 
+%             if (nargout>1)
+%                 varargout{1} = vecnorm( obj.model_error( X ), 2, 1 ) ;
+%                 varargout{2} = eig_jac ;
+%             end
+%         end
 
 
         % generate data points

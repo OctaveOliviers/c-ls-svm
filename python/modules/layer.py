@@ -5,7 +5,6 @@
 # @Last Modified on: 2021-03-31 18:24:42
 
 
-# import libraries
 import torch
 import torch.nn as nn
 from abc import ABCMeta
@@ -123,7 +122,7 @@ class Layer(nn.Module, metaclass=ABCMeta):
         # track the gradient to dy
         dy.requires_grad_(True)
         # reset the gradient to zero
-        # dy.grad = torch.zeros_like(dy)
+        dy.grad = torch.zeros_like(dy)
         # retain gradient wrt second input
         grad = torch.squeeze(torch.autograd.functional.jacobian(self.ker_fun, (x, dy))[1])
         if self.dim_in == 1: 
@@ -143,8 +142,8 @@ class Layer(nn.Module, metaclass=ABCMeta):
         dx.requires_grad_(True)
         dy.requires_grad_(True)
         # # reset the gradient to zero
-        # dx.grad = torch.zeros_like(dx)
-        # dy.grad = torch.zeros_like(dy)
+        dx.grad = torch.zeros_like(dx)
+        dy.grad = torch.zeros_like(dy)
         # return cross hessian
         return torch.autograd.functional.hessian(self.ker_fun, (dx,dy))[0][1]
 
@@ -157,22 +156,22 @@ class Layer(nn.Module, metaclass=ABCMeta):
         explain
         """
         if name.lower() == "tanh":
-            return torch.nn.Tanh()
+            return nn.Tanh()
         
         elif name.lower() == "linear":
-            return torch.nn.Identity()
+            return nn.Identity()
         
         elif name.lower() == "sign":
             return lambda x : torch.sign(x)
 
         elif name.lower() == "relu":
-            return torch.nn.ReLu()
+            return nn.ReLU()
 
         elif name.lower() == "tanhshrink":
-            return torch.nn.Tanhshrink()
+            return nn.Tanhshrink()
         
         else:
-            raise ValueError("Did not understand the name of the feature map.")
+            raise ValueError(f"Did not understand the name of the feature map: {name}.")
 
     @staticmethod
     def build_kernel(
@@ -208,7 +207,7 @@ class Layer(nn.Module, metaclass=ABCMeta):
             return poly_ker
         
         else:
-            raise ValueError("Did not understand the name of the kernel function.")
+            raise ValueError(f"Did not understand the name of the kernel function: {name}.")
 
     @staticmethod
     def dimension_feature_space(
@@ -234,7 +233,7 @@ class Layer(nn.Module, metaclass=ABCMeta):
             return dim_in
 
         else:
-            raise ValueError("Did not understand the name of the feature map.")
+            raise ValueError(f"Did not understand the name of the feature map: {name}.")
 
 # end class Layer
 

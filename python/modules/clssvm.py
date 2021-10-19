@@ -5,7 +5,6 @@
 # @Last Modified on: 2021-04-01 11:09:12
 
 
-# import libraries
 import torch
 import torch.nn as nn
 from modules.layer import *
@@ -36,8 +35,6 @@ class CLSSVM(nn.Module):
         self.parameters = []
         # model targets for each layer
         self.targets = []
-        # model input data
-        self.data_in = None
         # training device
         self.device = device
 
@@ -94,7 +91,6 @@ class CLSSVM(nn.Module):
         for i, layer in enumerate(self.layers[1:]):
             l += layer.loss(self.targets[i], self.targets[i+1])
         return l
-
 
     def custom_train(
             self,
